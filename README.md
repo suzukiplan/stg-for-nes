@@ -2,6 +2,8 @@
 
 NESのプログラミングを勉強するためシンプルなSTGを作ってみる。
 
+<img src="screenshot.png" width="320"/>
+
 ## WIP status
 
 - [x] スプライトで自機を表示
