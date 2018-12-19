@@ -106,7 +106,7 @@ copy_map2:
 	sta sp_player1
 	lda #$00
 	sta sp_player1 + 1
-	lda #$00
+	lda #%00100000
 	sta sp_player1 + 2
 	txa
 	sta sp_player1 + 3
@@ -116,7 +116,7 @@ copy_map2:
 	sta sp_player2
 	lda #$01
 	sta sp_player2 + 1
-	lda #$00
+	lda #%00100000
 	sta sp_player2 + 2
 	txa
 	adc #$08
@@ -128,7 +128,7 @@ copy_map2:
 	sta sp_player3
 	lda #$02
 	sta sp_player3 + 1
-	lda #$00
+	lda #%00100000
 	sta sp_player3 + 2
 	txa
 	sta sp_player3 + 3
@@ -139,7 +139,7 @@ copy_map2:
 	sta sp_player4
 	lda #$03
 	sta sp_player4 + 1
-	lda #$00
+	lda #%00100000
 	sta sp_player4 + 2
 	txa
 	adc #$08
