@@ -36,6 +36,20 @@ copy_pal:
 	dey
 	bne	copy_pal
 
+; write string to the name table (SCORE)
+	lda	#$20
+	sta	$2006
+	lda	#$25
+	sta	$2006
+	ldx	#$00
+	ldy	#$16
+draw_score:
+	lda	string_score, x
+	sta	$2007
+	inx
+	dey
+	bne	draw_score
+
 ; write string to the name table (Presented by)
 	lda	#$21
 	sta	$2006
@@ -145,7 +159,44 @@ moveloop_inputCheck:
 	lda $4016	; SELECT
 	lda $4016	; START
 	lda $4016	; UP
+	and #$01
+	bne mainloop_moveUp
 	lda $4016	; DOWN
+	and #$01
+	bne mainloop_moveDown
+	jmp mainloop_inputCheck_LR
+
+mainloop_moveUp:
+	lda $4016	; DOWN (skip)
+	ldx v_playerY
+	cpx #$28
+	bcc mainloop_inputCheck_LR ; do not move if y < 40
+	dex
+	dex
+	txa
+	sta v_playerY
+	sta sp_player1
+	sta sp_player2
+	adc #$07 ; NOTE: 原因不明だが上移動時は+8すると1pxズレるので+7にしておく
+	sta sp_player3
+	sta sp_player4
+	jmp mainloop_inputCheck_LR
+
+mainloop_moveDown:
+	ldx v_playerY
+	cpx #$E0
+	bcs mainloop_moveEnd ; do not move if 224 <= y
+	inx
+	inx
+	txa
+	sta v_playerY
+	sta sp_player1
+	sta sp_player2
+	adc #$08
+	sta sp_player3
+	sta sp_player4
+
+mainloop_inputCheck_LR:
 	lda $4016	; LEFT
 	and #$01
 	bne mainloop_moveLeft
@@ -156,8 +207,8 @@ moveloop_inputCheck:
 
 mainloop_moveLeft:
 	ldx v_playerX
-	cpx #$10
-	bcc mainloop_moveEnd ; do not move if x < 16
+	cpx #$12
+	bcc mainloop_moveEnd ; do not move if x < 18
 	dex
 	dex
 	txa
@@ -214,6 +265,9 @@ string_presented:
 
 string_copyright:
 	.byte	"(C)2018 SUZUKI PLAN."
+
+string_score:
+	.byte	"SC 0000000  HI 0000000"
 
 .org $0000
 v_playerX:	.byt	$00
