@@ -281,6 +281,11 @@ mainloop_addNewShot:
     sta v_shot_ng
 
     ldx v_shot_idx
+
+    ; suppress if shot exist yet
+    lda v_shot0_f, x
+    bne mainloop_endFireShot
+
     lda #$01
     sta v_shot0_f, x
     lda v_playerX
