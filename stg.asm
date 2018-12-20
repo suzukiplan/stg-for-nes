@@ -398,9 +398,9 @@ v_shot0_f:	.byte	$00		; ショットの生存フラグ
 v_shot0_x:	.byte	$00		; ショットのX座標
 v_shot0_y:	.byte	$00		; ショットのY座標
 v_shot0_i:	.byte	$00		; 未使用 (バウンダリ)
-			.byte	$00, $00, $00, $00
-			.byte	$00, $00, $00, $00
-			.byte	$00, $00, $00, $00
+v_shot1:	.byte	$00, $00, $00, $00
+v_shot2:	.byte	$00, $00, $00, $00
+v_shot3:	.byte	$00, $00, $00, $00
 
 .org $0300	;    	Y   	TILE	ATTR	X		  description
 sp_player1:	.byte	$00,	$00,	$00,	$00		; player (left-top)
