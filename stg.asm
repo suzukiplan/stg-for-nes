@@ -178,7 +178,6 @@ clear_sprite_area:
     inx
     bne clear_sprite_area
 
-
 ; setup player variables
     lda #$50
     sta v_playerX
@@ -235,27 +234,37 @@ clear_sprite_area:
     adc #$08
     sta sp_player4 + 3
 
-; setup shot sprites & variables
+; setup shot variables
     lda #$00
     sta v_shot_idx
     sta v_shot_ng
     ldx #$00
     ldy #$04
-setup_shot_sprites:
     lda #$00
+setup_shot_vars:
     sta v_shot0_f, x
-    sta sp_shot0, x
-    sta sp_shot0 + 3, x
-    lda #$04
-    sta sp_shot0 + 1, x
-    lda #%00100000
-    sta sp_shot0 + 2, x
-    txa
-    clc
-    adc #$04
-    tax
+    inx
+    inx
+    inx
+    inx
     dey
-    bne setup_shot_sprites
+    bne setup_shot_vars
+
+; setup enemy variables
+    lda #$00
+    sta v_enemy_idx
+    sta v_enemy_xi
+    ldx #$00
+    ldy #$08
+    lda #$00
+setup_enemy_vars:
+    sta v_enemy0_f, x
+    inx
+    inx
+    inx
+    inx
+    dey
+    bne setup_enemy_vars
 
 ; loop infinite
 mainloop:
@@ -264,6 +273,75 @@ mainloop:
     sta $4016
     lda #$00
     sta $4016
+
+    ; increment counter
+    ldx v_counter
+    inx
+    stx v_counter
+
+    ; 16フレームに1回敵キャラを出現させる
+    txa
+    and #$0f
+    bne moveloop_inputCheck
+
+mainloop_addNewEnemy:
+    ldx v_enemy_idx
+    lda #$01 ; TODO: 暫定的に同じ種類の敵だけ出現させている
+    sta v_enemy0_f, x
+    lda #$00
+    sta v_enemy0_i, x
+    ; X座標 (enemy_x_tableから持ってくる)
+    ldy v_enemy_xi
+    iny
+    tya
+    and #$0f
+    sta v_enemy_xi
+    tay
+    lda enemy_x_table, y
+    sta v_enemy0_x, x
+    ; Y座標は0だがこれは下半分のオブジェクトのY座標（上半分は-8）
+    lda #$00
+    sta v_enemy0_y, x
+
+    ; Y of sprites
+    sta sp_enemy0lb, x
+    sta sp_enemy0rb, x
+    clc
+    adc #$F8
+    sta sp_enemy0lt, x
+    sta sp_enemy0rt, x
+
+    ; TILE of sprites
+    lda #$06
+    sta sp_enemy0lt + 1, x
+    lda #$07
+    sta sp_enemy0rt + 1, x
+    lda #$08
+    sta sp_enemy0lb + 1, x
+    lda #$09
+    sta sp_enemy0rb + 1, x
+
+    ; ATTR of sprites
+    lda #%00100011
+    sta sp_enemy0lt + 2, x
+    sta sp_enemy0rt + 2, x
+    sta sp_enemy0lb + 2, x
+    sta sp_enemy0rb + 2, x
+
+    ; X of sprites
+    lda v_enemy0_x, x
+    sta sp_enemy0lt + 3, x
+    sta sp_enemy0lb + 3, x
+    adc #$08
+    sta sp_enemy0rt + 3, x
+    sta sp_enemy0rb + 3, x
+
+    ; increment index
+    txa
+    clc
+    adc #$04
+    and #$1f
+    sta v_enemy_idx
 
 moveloop_inputCheck:
     lda $4016   ; A
@@ -406,7 +484,7 @@ mainloop_moveEnd:
 mainloop_moveShot:
     ; check flag
     lda v_shot0_f, x
-    beq mainloop_moveShot_erase
+    beq mainloop_moveShot_next
     lda v_shot0_y, x
     clc
     adc #$FA
@@ -430,6 +508,52 @@ mainloop_moveShot_next:
     and #$0f
     bne mainloop_moveShot
 
+mainloop_moveShotEnd:
+
+    ldx #$00
+mainloop_moveEnemy:
+    ; check flag
+    lda v_enemy0_f, x
+    beq mainloop_moveEnemy_next
+
+    ; TODO: とりあえず全部同じ敵キャラとして動かしておく
+    ; v_enemy0_f の値を見て敵の種別毎に異なる動きをするようにしたい
+    ; 残敵的に単純に上から下へ降りてくるだけ（もっと複雑な動きにしたい）
+    lda v_enemy0_y, x
+    adc #$02
+    bcs mainloop_moveEnemy_erase
+    sta v_enemy0_y, x
+    sta sp_enemy0lb, x
+    sta sp_enemy0rb, x
+    adc #$f8
+    sta sp_enemy0lt, x
+    sta sp_enemy0rt, x
+    jmp mainloop_moveEnemy_next
+
+mainloop_moveEnemy_erase:
+    lda #$00
+    sta v_enemy0_f, x
+    sta sp_enemy0lt, x
+    sta sp_enemy0lt + 1, x
+    sta sp_enemy0lt + 3, x
+    sta sp_enemy0rt, x
+    sta sp_enemy0rt + 1, x
+    sta sp_enemy0rt + 3, x
+    sta sp_enemy0lb, x
+    sta sp_enemy0lb + 1, x
+    sta sp_enemy0lb + 3, x
+    sta sp_enemy0rb, x
+    sta sp_enemy0rb + 1, x
+    sta sp_enemy0rb + 3, x
+
+mainloop_moveEnemy_next:
+    txa
+    clc
+    adc #$04
+    and #$1f
+    tax
+    bne mainloop_moveEnemy
+
 mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda $2002
     bpl mainloop_sprite_DMA ; wait for vBlank
@@ -450,6 +574,10 @@ palettes:
     .byte   $0f, $08, $18, $28
     .byte   $0f, $0a, $1a, $2a
 
+enemy_x_table:; $08〜$B0
+    .byte   $08, $18, $38, $B0, $A0, $80, $50, $20
+    .byte   $16, $1a, $24, $30, $B0, $A9, $95, $8f
+
 string_score:
     .byte   "SCORE"
 
@@ -464,7 +592,11 @@ v_playerX:  .byte   $00     ; 自機のX座標
 v_playerY:  .byte   $00     ; 自機のY座標
 v_shot_idx: .byte   $00     ; ショットのindex
 v_shot_ng:  .byte   $00     ; ショットの発射禁止フラグ (0の時のみ発射許可)
+v_counter:  .byte   $00     ; tick counter
+v_enemy_idx:.byte   $00     ; 敵のindex
+v_enemy_xi: .byte   $00     ; 敵の出現位置のindex
 
+.org $0400
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
 v_shot0_x:  .byte   $00     ; ショットのX座標
 v_shot0_y:  .byte   $00     ; ショットのY座標
@@ -473,15 +605,59 @@ v_shot1:    .byte   $00, $00, $00, $00
 v_shot2:    .byte   $00, $00, $00, $00
 v_shot3:    .byte   $00, $00, $00, $00
 
-.org $0300  ;       Y       TILE    ATTR    X         description
-sp_player1: .byte   $00,    $00,    $00,    $00     ; player (left-top)
-sp_player2: .byte   $00,    $00,    $00,    $00     ; player (right-top)
-sp_player3: .byte   $00,    $00,    $00,    $00     ; player (left-bottom)
-sp_player4: .byte   $00,    $00,    $00,    $00     ; player (right-bottom)
-sp_shot0:   .byte   $00,    $00,    $00,    $00     ; shot (0)
-sp_shot1:   .byte   $00,    $00,    $00,    $00     ; shot (1)
-sp_shot2:   .byte   $00,    $00,    $00,    $00     ; shot (2)
-sp_shot3:   .byte   $00,    $00,    $00,    $00     ; shot (3)
+v_enemy0_f: .byte   $00     ; 敵の生存フラグ（兼種別判定フラグ）
+v_enemy0_x: .byte   $00     ; 敵のX座標
+v_enemy0_y: .byte   $00     ; 敵のY座標
+v_enemy0_i: .byte   $00     ; 敵の汎用変数
+v_enemy1:   .byte   $00, $00, $00, $00
+v_enemy2:   .byte   $00, $00, $00, $00
+v_enemy3:   .byte   $00, $00, $00, $00
+v_enemy4:   .byte   $00, $00, $00, $00
+v_enemy5:   .byte   $00, $00, $00, $00
+v_enemy6:   .byte   $00, $00, $00, $00
+v_enemy7:   .byte   $00, $00, $00, $00
+
+.org $0300  ;       Y       TILE    ATTR    X         No: description
+sp_player1: .byte   $00,    $00,    $00,    $00     ; 01: player (left-top)
+sp_player2: .byte   $00,    $00,    $00,    $00     ; 02: player (right-top)
+sp_player3: .byte   $00,    $00,    $00,    $00     ; 03: player (left-bottom)
+sp_player4: .byte   $00,    $00,    $00,    $00     ; 04: player (right-bottom)
+sp_shot0:   .byte   $00,    $00,    $00,    $00     ; 05: shot (0)
+sp_shot1:   .byte   $00,    $00,    $00,    $00     ; 06: shot (1)
+sp_shot2:   .byte   $00,    $00,    $00,    $00     ; 07: shot (2)
+sp_shot3:   .byte   $00,    $00,    $00,    $00     ; 08: shot (3)
+sp_enemy0lt:.byte   $00,    $00,    $00,    $00     ; 09: enemy (0) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 10: enemy (1) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 11: enemy (2) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 12: enemy (3) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 13: enemy (4) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 14: enemy (5) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 15: enemy (6) (left-top)
+            .byte   $00,    $00,    $00,    $00     ; 16: enemy (7) (left-top)
+sp_enemy0rt:.byte   $00,    $00,    $00,    $00     ; 17: enemy (0) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 18: enemy (1) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 19: enemy (2) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 20: enemy (3) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 21: enemy (4) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 22: enemy (5) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 23: enemy (6) (right-top)
+            .byte   $00,    $00,    $00,    $00     ; 24: enemy (7) (right-top)
+sp_enemy0lb:.byte   $00,    $00,    $00,    $00     ; 25: enemy (0) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 26: enemy (1) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 27: enemy (2) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 28: enemy (3) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 29: enemy (4) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 30: enemy (5) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 31: enemy (6) (left-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 32: enemy (7) (left-bottom)
+sp_enemy0rb:.byte   $00,    $00,    $00,    $00     ; 33: enemy (0) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 34: enemy (1) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 35: enemy (2) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 36: enemy (3) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 37: enemy (4) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 38: enemy (5) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 39: enemy (6) (right-bottom)
+            .byte   $00,    $00,    $00,    $00     ; 40: enemy (7) (right-bottom)
 
 .segment "VECINFO"
     .word   $0000
