@@ -102,8 +102,8 @@ TAX と TXA を単純に「タックス（※税金ではない）」「タク�
 以下のように覚えると間違えなくなったので良い感じである。
 
 ```
-TAX; Translate A to X (AをXに代入)
-TXA; Translate X to A (XをAに代入)
+TAX; Transfer A to X (AをXに代入)
+TXA; Transfer X to A (XをAに代入)
 ```
 
 > `from` ではなく `to` であると覚えればまず間違えない。
