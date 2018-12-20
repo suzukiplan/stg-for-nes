@@ -405,8 +405,8 @@ mainloop_moveShot:
     lda v_shot0_y, x
     clc
     adc #$FA
-    cmp #$08
-    bcc mainloop_moveShot_erase
+    cmp #$f8
+    bcs mainloop_moveShot_erase
     ; store Y
     sta v_shot0_y, x
     sta sp_shot0, x
