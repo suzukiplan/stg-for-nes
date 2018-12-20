@@ -36,20 +36,77 @@ copy_pal:
     dey
     bne copy_pal
 
-; write mask on the left top
+; clear name table (fill name table: pattern 00)
     lda #$20
     sta $2006
     lda #$00
     sta $2006
+    ldy #$00
+    lda #$00
+    ldx #$04
+clear_name_table:
     sta $2007
+    iny
+    bne clear_name_table
+    dex
+    bne clear_name_table
+
+; initialize palette of name table
+; 00000000 - 00000000 - 00000033 - 33333333 (0~175: game area, 176~255: window area)
+    lda #$23
+    sta $2006
+    lda #$c0
+    sta $2006
+    ldy #$08
+init_name_palettes:
+    lda #%00000000
+    sta $2007
+    lda #%00000000
+    sta $2007
+    lda #%00000000
+    sta $2007
+    lda #%00000000
+    sta $2007
+    lda #%00000000
+    sta $2007
+    lda #%11001100
+    sta $2007
+    lda #%11111111
+    sta $2007
+    lda #%11111111
+    sta $2007
+    dey
+    bne init_name_palettes
+
+; make window area to the space
+    lda #$20
+    sta $2006
+    lda #$00
+    sta $2006
+    ldy #$1e
+make_window:
+    ldx #$16
+    lda #$00
+make_windowL:
+    sta $2007
+    dex
+    bne make_windowL
+    ldx #$0a
+    lda #$20
+make_windowR:
+    sta $2007
+    dex
+    bne make_windowR
+    dey
+    bne make_window
 
 ; write string to the name table (SCORE)
     lda #$20
     sta $2006
-    lda #$45
+    lda #$57
     sta $2006
     ldx #$00
-    ldy #$16
+    ldy #$5
 draw_score:
     lda string_score, x
     sta $2007
@@ -57,33 +114,47 @@ draw_score:
     dey
     bne draw_score
 
-; write string to the name table (Presented by)
-    lda #$21
+; write string to the name table (SCORE-PTS)
+    lda #$20
     sta $2006
-    lda #$aa
+    lda #$97
     sta $2006
     ldx #$00
-    ldy #$0c
-copy_map1:
-    lda string_presented, x
+    ldy #$7
+draw_score_pts:
+    lda string_pts, x
     sta $2007
     inx
     dey
-    bne copy_map1
+    bne draw_score_pts
 
-; write string to the name table (SUZUKI PLAN.)
+; write string to the name table (TOP)
     lda #$21
     sta $2006
-    lda #$ea
+    lda #$17
     sta $2006
     ldx #$00
-    ldy #$0c
-copy_map2:
-    lda string_suzuki, x
+    ldy #$3
+draw_top:
+    lda string_top, x
     sta $2007
     inx
     dey
-    bne copy_map2
+    bne draw_top
+
+; write string to the name table (TOP-PTS)
+    lda #$21
+    sta $2006
+    lda #$57
+    sta $2006
+    ldx #$00
+    ldy #$7
+draw_top_pts:
+    lda string_pts, x
+    sta $2007
+    inx
+    dey
+    bne draw_top_pts
 
 ; scroll setting
     lda #$00
@@ -109,7 +180,7 @@ clear_sprite_area:
 
 
 ; setup player variables
-    lda #$70
+    lda #$50
     sta v_playerX
     tax
     lda #$d0
@@ -295,8 +366,8 @@ mainloop_inputCheck_LR:
 
 mainloop_moveLeft:
     ldx v_playerX
-    cpx #$12
-    bcc mainloop_moveEnd ; do not move if x < 18
+    cpx #$0a
+    bcc mainloop_moveEnd ; do not move if x < 10
     dex
     dex
     txa
@@ -311,8 +382,8 @@ mainloop_moveLeft:
 
 mainloop_moveRight:
     ldx v_playerX
-    cpx #$E0
-    bcs mainloop_moveEnd ; do not move if 224 <= x
+    cpx #$A0
+    bcs mainloop_moveEnd ; do not move if 160 <= x
     inx
     inx
     txa
@@ -364,27 +435,24 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
 
 palettes:
     ; BG
-    .byte   $0f, $00, $10, $20
+    .byte   $0f, $00, $10, $20 ; Main領域のBGパレット
     .byte   $0f, $06, $16, $26
     .byte   $0f, $08, $18, $28
-    .byte   $0f, $0a, $1a, $2a
+    .byte   $0c, $0c, $00, $30 ; Window領域のBGパレット
     ; Sprite
     .byte   $0f, $00, $10, $20
     .byte   $0f, $06, $16, $26
     .byte   $0f, $08, $18, $28
     .byte   $0f, $0a, $1a, $2a
 
-string_suzuki:
-    .byte   "SUZUKI PLAN."
-
-string_presented:
-    .byte   "Presented by"
-
-string_copyright:
-    .byte   "(C)2018 SUZUKI PLAN."
-
 string_score:
-    .byte   "SC 0000000  HI 0000000"
+    .byte   "SCORE"
+
+string_top:
+    .byte   "TOP"
+
+string_pts:
+    .byte   "     00"
 
 .org $0000
 v_playerX:  .byte   $00     ; 自機のX座標
