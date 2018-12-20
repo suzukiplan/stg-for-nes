@@ -229,11 +229,9 @@ mainloop_addNewShot:
     lda v_shot0_x, x
     sta sp_shot0 + 3, x
 
-    inx
-    inx
-    inx
-    inx
     txa
+    clc
+    adc #$04
     and #$0f
     sta v_shot_idx
 
