@@ -515,10 +515,10 @@ mainloop_moveEnemy:
     ; check flag
     lda v_enemy0_f, x
     beq mainloop_moveEnemy_next
-
     ; TODO: とりあえず全部同じ敵キャラとして動かしておく
     ; v_enemy0_f の値を見て敵の種別毎に異なる動きをするようにしたい
     ; 残敵的に単純に上から下へ降りてくるだけ（もっと複雑な動きにしたい）
+    ; 恐らく敵の種類毎にサブルーチン化する必用がある
     lda v_enemy0_y, x
     adc #$02
     bcs mainloop_moveEnemy_erase
@@ -528,7 +528,10 @@ mainloop_moveEnemy:
     adc #$f8
     sta sp_enemy0lt, x
     sta sp_enemy0rt, x
-    jmp mainloop_moveEnemy_next
+    jsr sub_moveEnemy_hitCheck
+    and #$01
+    bne mainloop_moveEnemy_next
+    ; jmp mainloop_moveEnemy_erase
 
 mainloop_moveEnemy_erase:
     lda #$00
@@ -560,6 +563,51 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda #$3
     sta $4014
     jmp mainloop
+
+;----------------------------------------------------------
+; サブルーチン: 敵機と自機ショットの当たり判定
+; * xレジスタ: 敵機のindex (このサブルーチン内ではread only)
+; * yレジスタ: 自機ショットのindexとして使う
+; * aレジスタ: ヒットしなかった場合1, ヒットした場合0 でリターン
+;----------------------------------------------------------
+sub_moveEnemy_hitCheck:
+    ldy #$00
+sub_moveEnemy_hitCheck_loop:
+    lda v_shot0_f, y
+    beq sub_moveEnemy_hitCheck_next
+    lda v_enemy0_x, x
+    clc
+    adc #$fc ; 本当はshotXを+4したいが難しいので敵Xを-4する
+    cmp v_shot0_x, y
+    bcs sub_moveEnemy_hitCheck_next ; enemyX(a) >= shotX + 4 is not hit
+    adc #$10
+    cmp v_shot0_x, y
+    bcc sub_moveEnemy_hitCheck_next ; enemyX+16(a) < shotX + 4 is not hit
+    lda v_enemy0_y, x
+    adc #$F3 ; carry が 1 なので #$F4 (本当は-8すべきだが-12にすることでshotY+4で判定)
+    cmp v_shot0_y, y
+    bcs sub_moveEnemy_hitCheck_next ; enemyY-8(a) >= shotY + 4 is not hit
+    adc #$10
+    cmp v_shot0_y, y
+    bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY + 4 is not hit
+    ; ヒットした (自機ショットを消滅させつつ, a = 0 でリターン)
+    lda #$00
+    sta v_shot0_f, y
+    sta sp_shot0, y
+    sta sp_shot0 + 1, y
+    sta sp_shot0 + 3, y
+    rts
+sub_moveEnemy_hitCheck_next:
+    tya
+    clc
+    adc #$04
+    tay
+    and #$0f
+    bne sub_moveEnemy_hitCheck_loop
+    ; TODO: 敵の爆破アニメーションの開始指示をするならココがベスト
+    lda #$01 ; a = 1 でリターン（ヒットしなかった）
+    rts
+
 .endproc
 
 palettes:
