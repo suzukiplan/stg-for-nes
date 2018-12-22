@@ -100,38 +100,10 @@ make_windowR:
     dey
     bne make_window
 
-; write string to the name table (SCORE)
-    lda #$20
-    sta $2006
-    lda #$57
-    sta $2006
-    ldx #$00
-    ldy #$5
-draw_score:
-    lda string_score, x
-    sta $2007
-    inx
-    dey
-    bne draw_score
-
-; write string to the name table (SCORE-PTS)
-    lda #$20
-    sta $2006
-    lda #$97
-    sta $2006
-    ldx #$00
-    ldy #$7
-draw_score_pts:
-    lda string_pts, x
-    sta $2007
-    inx
-    dey
-    bne draw_score_pts
-
 ; write string to the name table (TOP)
-    lda #$21
+    lda #$20
     sta $2006
-    lda #$17
+    lda #$77
     sta $2006
     ldx #$00
     ldy #$3
@@ -143,9 +115,9 @@ draw_top:
     bne draw_top
 
 ; write string to the name table (TOP-PTS)
-    lda #$21
+    lda #$20
     sta $2006
-    lda #$57
+    lda #$b7
     sta $2006
     ldx #$00
     ldy #$7
@@ -155,6 +127,35 @@ draw_top_pts:
     inx
     dey
     bne draw_top_pts
+
+; write string to the name table (SCORE)
+    lda #$21
+    sta $2006
+    lda #$37
+    sta $2006
+    ldx #$00
+    ldy #$5
+draw_score:
+    lda string_score, x
+    sta $2007
+    inx
+    dey
+    bne draw_score
+
+; write string to the name table (SCORE-PTS)
+    lda #$21
+    sta $2006
+    lda #$77
+    sta $2006
+    ldx #$00
+    ldy #$7
+draw_score_pts:
+    lda string_pts, x
+    sta $2007
+    inx
+    dey
+    bne draw_score_pts
+
 
 ; scroll setting
     lda #$00
