@@ -556,6 +556,73 @@ mainloop_moveEnemy_next:
     and #$1f
     tax
     bne mainloop_moveEnemy
+mainloop_moveEnemy_end:
+
+mainloop_moveBomb:
+    lda v_bomb_f
+    beq mainloop_moveBomb_end
+    ; 描画する爆発パターンを設定: v_bomb_f ÷ 4 + 16 (+0, +4, +8, +12)
+    lsr                 ; ÷ 2
+    lsr                 ; ÷ 4
+    and #$03            ; 念の為 0〜3 になるように調整
+    clc
+    adc #$10            ; +16
+    sta sp_bomb1 + 1    ; 左上のTILEを設定
+    adc #$04
+    sta sp_bomb3 + 1    ; 左下のTILEを設定
+    adc #$04
+    sta sp_bomb2 + 1    ; 右上のTILEを設定
+    adc #$04
+    sta sp_bomb4 + 1    ; 右下のTILEを設定
+    ; Y座標を設定 (2フレームに1回Y座標をデクリメント)
+    ldx v_bomb_y
+    lda v_bomb_f
+    and #$01
+    bne mainloop_moveBomb_notMoveY
+    dex
+    stx v_bomb_y
+mainloop_moveBomb_notMoveY:
+    stx sp_bomb1
+    stx sp_bomb3
+    txa
+    clc
+    adc #$08
+    tax
+    stx sp_bomb2
+    stx sp_bomb4
+    ; X座標を設定
+    ldx v_bomb_x
+    stx sp_bomb1 + 3
+    stx sp_bomb2 + 3
+    txa
+    clc
+    adc #$08
+    tax
+    stx sp_bomb3 + 3
+    stx sp_bomb4 + 3
+    ; 属性を設定
+    lda #%00100001
+    sta sp_bomb1 + 2
+    sta sp_bomb2 + 2
+    sta sp_bomb3 + 2
+    sta sp_bomb4 + 2
+    ; フラグをインクリメントして16になったらクリア
+    ldx v_bomb_f
+    inx
+    txa
+    and #$0f
+    sta v_bomb_f
+    bne mainloop_moveBomb_end
+    ; 爆発のスプライトを消す
+    lda #$00
+    ldx #$00
+    ldy #$10
+mainloop_moveBomb_eraseLoop:
+    sta sp_bomb1, x
+    inx
+    dey
+    bne mainloop_moveBomb_eraseLoop
+mainloop_moveBomb_end:
 
 mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda $2002
@@ -590,7 +657,16 @@ sub_moveEnemy_hitCheck_loop:
     adc #$10
     cmp v_shot0_y, y
     bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY + 4 is not hit
-    ; ヒットした (自機ショットを消滅させつつ, a = 0 でリターン)
+    ; 現在の敵座標位置から爆発を描画
+    lda #$01
+    sta v_bomb_f
+    lda v_enemy0_x, x
+    sta v_bomb_x
+    lda v_enemy0_y, x
+    clc
+    adc #$f8
+    sta v_bomb_y
+    ; 自機ショットを消滅させつつ, a = 0 でリターン
     lda #$00
     sta v_shot0_f, y
     sta sp_shot0, y
@@ -617,10 +693,10 @@ palettes:
     .byte   $0f, $08, $18, $28
     .byte   $0c, $0c, $00, $30 ; Window領域のBGパレット
     ; Sprite
-    .byte   $0f, $00, $10, $20
-    .byte   $0f, $06, $16, $26
-    .byte   $0f, $08, $18, $28
-    .byte   $0f, $0a, $1a, $2a
+    .byte   $0f, $00, $10, $20 ; 自機 (mask, 暗い灰色, 灰色, 白)
+    .byte   $0f, $06, $28, $20 ; 爆発 (mask, 赤, 黄, 白)
+    .byte   $0f, $08, $18, $28 ; まだ使っていない
+    .byte   $0f, $0a, $1a, $2a ; 敵 (mask, 暗い緑, 緑, 明るい緑)
 
 enemy_x_table:; $08〜$B0
     .byte   $08, $18, $38, $B0, $A0, $80, $50, $20
@@ -643,6 +719,9 @@ v_shot_ng:  .byte   $00     ; ショットの発射禁止フラグ (0の時の�
 v_counter:  .byte   $00     ; tick counter
 v_enemy_idx:.byte   $00     ; 敵のindex
 v_enemy_xi: .byte   $00     ; 敵の出現位置のindex
+v_bomb_f:   .byte   $00     ; 爆発フラグ (#$00〜#$0F)
+v_bomb_x:   .byte   $00     ; 爆発のX座標
+v_bomb_y:   .byte   $00     ; 爆発のY座標
 
 .org $0400
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
@@ -706,6 +785,10 @@ sp_enemy0rb:.byte   $00,    $00,    $00,    $00     ; 33: enemy (0) (right-botto
             .byte   $00,    $00,    $00,    $00     ; 38: enemy (5) (right-bottom)
             .byte   $00,    $00,    $00,    $00     ; 39: enemy (6) (right-bottom)
             .byte   $00,    $00,    $00,    $00     ; 40: enemy (7) (right-bottom)
+sp_bomb1:   .byte   $00,    $00,    $00,    $00     ; 41: bomb (left-top)
+sp_bomb2:   .byte   $00,    $00,    $00,    $00     ; 42: bomb (right-top)
+sp_bomb3:   .byte   $00,    $00,    $00,    $00     ; 43: bomb (left-bottom)
+sp_bomb4:   .byte   $00,    $00,    $00,    $00     ; 44: bomb (right-bottom)
 
 .segment "VECINFO"
     .word   $0000
