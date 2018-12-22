@@ -518,17 +518,9 @@ mainloop_moveEnemy:
     beq mainloop_moveEnemy_next
     ; TODO: とりあえず全部同じ敵キャラとして動かしておく
     ; v_enemy0_f の値を見て敵の種別毎に異なる動きをするようにしたい
-    ; 残敵的に単純に上から下へ降りてくるだけ（もっと複雑な動きにしたい）
-    ; 恐らく敵の種類毎にサブルーチン化する必用がある
-    lda v_enemy0_y, x
-    adc #$02
-    bcs mainloop_moveEnemy_erase
-    sta v_enemy0_y, x
-    sta sp_enemy0lb, x
-    sta sp_enemy0rb, x
-    adc #$f8
-    sta sp_enemy0lt, x
-    sta sp_enemy0rt, x
+    jsr sub_moveEnemy_type1
+    and #$01
+    beq mainloop_moveEnemy_erase
     jsr sub_moveEnemy_hitCheck
     and #$01
     bne mainloop_moveEnemy_next
@@ -631,6 +623,91 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda #$3
     sta $4014
     jmp mainloop
+
+;----------------------------------------------------------
+; サブルーチン: 敵アルゴリズム（type1）
+; * xレジスタ: 敵機のindex (このサブルーチン内ではread only)
+; * a,yレジスタ: サブルーチン内で自由に使える
+; * 戻り値: 敵が生存中の場合はa=1を返し、敵を消す場合はa=0を返す
+;----------------------------------------------------------
+sub_moveEnemy_type1:
+    ; 下に移動
+    lda v_enemy0_y, x
+    adc #$02
+    bcc sub_moveEnemy_type1_alive
+    ; 下限に達したので消す
+    lda #$00
+    rts
+sub_moveEnemy_type1_alive:
+    ; Y座標を記憶
+    sta v_enemy0_y, x
+    sta sp_enemy0lb, x
+    sta sp_enemy0rb, x
+    adc #$f8
+    sta sp_enemy0lt, x
+    sta sp_enemy0rt, x
+    ; フラグにより動作を変える
+    lda v_enemy0_i, x
+    and #$ff
+    beq sub_moveEnemy_type1_downOnly
+    and #$01
+    bne sub_moveEnemy_type1_right
+
+sub_moveEnemy_type1_left:
+    ldy v_enemy0_x, x
+    dey
+    bcc sub_moveEnemy_type1_left_over ; 負数になったので消す
+    tya
+    sta v_enemy0_x, x
+    sta sp_enemy0lt + 3, x
+    sta sp_enemy0lb + 3, x
+    clc
+    adc #$08
+    sta sp_enemy0rt + 3, x
+    sta sp_enemy0rb + 3, x
+    lda #$01
+    rts
+sub_moveEnemy_type1_left_over:
+    lda #$00
+    rts
+
+sub_moveEnemy_type1_downOnly:
+    lda v_enemy0_y, x
+    cmp #$40
+    bcc sub_moveEnemy_type1_downOnly_keep
+
+    lda v_enemy0_x, x
+    cmp v_playerX
+    bcc sub_moveEnemy_type1_downOnly_toRight
+sub_moveEnemy_type1_downOnly_toLeft:
+    lda #$02
+    sta v_enemy0_i, x
+    lda #$01
+    rts
+sub_moveEnemy_type1_downOnly_toRight:
+    lda #$01
+    sta v_enemy0_i, x
+sub_moveEnemy_type1_downOnly_keep:
+    lda #$01
+    rts
+
+sub_moveEnemy_type1_right:
+    ldy v_enemy0_x, x
+    iny
+    cpy #$b0
+    bcs sub_moveEnemy_type1_right_over ; 176以上なので消す
+    tya
+    sta v_enemy0_x, x
+    sta sp_enemy0lt + 3, x
+    sta sp_enemy0lb + 3, x
+    adc #$08
+    sta sp_enemy0rt + 3, x
+    sta sp_enemy0rb + 3, x
+    lda #$01
+    rts
+sub_moveEnemy_type1_right_over:
+    lda #$00
+    rts
 
 ;----------------------------------------------------------
 ; サブルーチン: 敵機と自機ショットの当たり判定
