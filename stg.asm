@@ -293,7 +293,7 @@ setup_enemy_vars:
 
 ; setup enemy shot variables
     ldx #$00
-    ldy #$10
+    ldy #$08
     lda #$00
 setup_eshot_vars:
     sta v_eshot0_f, x
@@ -556,7 +556,7 @@ mainloop_moveEShot_next:
     clc
     adc #$04
     tax
-    and #$3f
+    and #$1f
     bne mainloop_moveEShot
 mainloop_moveEShotEnd:
 
@@ -1095,7 +1095,7 @@ sub_newEnemyShot:
     tya
     clc
     adc #$04
-    and #$3f
+    and #$1f
     sta v_eshot_idx
     ; フラグを設定
     lda #$01 ; 弾の種類を増やす場合はココの値を2とかにする
@@ -1383,14 +1383,6 @@ v_eshot4:   .byte   $00, $00, $00, $00
 v_eshot5:   .byte   $00, $00, $00, $00
 v_eshot6:   .byte   $00, $00, $00, $00
 v_eshot7:   .byte   $00, $00, $00, $00
-v_eshot8:   .byte   $00, $00, $00, $00
-v_eshot9:   .byte   $00, $00, $00, $00
-v_eshotA:   .byte   $00, $00, $00, $00
-v_eshotB:   .byte   $00, $00, $00, $00
-v_eshotC:   .byte   $00, $00, $00, $00
-v_eshotD:   .byte   $00, $00, $00, $00
-v_eshotE:   .byte   $00, $00, $00, $00
-v_eshotF:   .byte   $00, $00, $00, $00
 
 v_enemy0_f: .byte   $00     ; 敵の生存フラグ（兼種別判定フラグ）
 v_enemy0_x: .byte   $00     ; 敵のX座標
@@ -1457,14 +1449,6 @@ sp_eshot4:  .byte   $00,    $00,    $00,    $00     ; 49: enemy shot (4)
 sp_eshot5:  .byte   $00,    $00,    $00,    $00     ; 50: enemy shot (5)
 sp_eshot6:  .byte   $00,    $00,    $00,    $00     ; 51: enemy shot (6)
 sp_eshot7:  .byte   $00,    $00,    $00,    $00     ; 52: enemy shot (7)
-sp_eshot8:  .byte   $00,    $00,    $00,    $00     ; 53: enemy shot (8)
-sp_eshot9:  .byte   $00,    $00,    $00,    $00     ; 54: enemy shot (9)
-sp_eshotA:  .byte   $00,    $00,    $00,    $00     ; 55: enemy shot (10)
-sp_eshotB:  .byte   $00,    $00,    $00,    $00     ; 56: enemy shot (11)
-sp_eshotC:  .byte   $00,    $00,    $00,    $00     ; 57: enemy shot (12)
-sp_eshotD:  .byte   $00,    $00,    $00,    $00     ; 58: enemy shot (13)
-sp_eshotE:  .byte   $00,    $00,    $00,    $00     ; 59: enemy shot (14)
-sp_eshotF:  .byte   $00,    $00,    $00,    $00     ; 60: enemy shot (15)
 
 .segment "VECINFO"
     .word   $0000
