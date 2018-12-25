@@ -192,6 +192,8 @@ clear_sprite_area:
     bne clear_sprite_area
 
 ; setup player variables
+    lda #$01
+    sta v_alive
     lda #$50
     sta v_playerX
     tax
@@ -368,141 +370,10 @@ mainloop_addNewEnemy:
     sta v_enemy_idx
 
 moveloop_inputCheck:
-    lda $4016   ; A
-    and #$01
-    bne mainloop_addNewShot
-    ; reset ng flag if not push A
-    lda #$00
-    sta v_shot_ng
-    jmp mainloop_endFireShot
-
-mainloop_addNewShot:
-    lda v_shot_ng
-    bne mainloop_suppressFireShot
-    lda #$20
-    sta v_shot_ng
-
-    ldx v_shot_idx
-
-    ; suppress if shot exist yet
-    lda v_shot0_f, x
-    bne mainloop_endFireShot
-
-    lda #$01
-    sta v_shot0_f, x
-    lda v_playerX
-    clc
-    adc #$04
-    sta v_shot0_x, x
-    lda v_playerY
-    adc #$FF
-    sta v_shot0_y, x
-
-    ; initialize sprite of shot
-    sta sp_shot0, x
-    lda #$05
-    sta sp_shot0 + 1, x
-    lda #%00100000
-    sta sp_shot0 + 2, x
-    lda v_shot0_x, x
-    sta sp_shot0 + 3, x
-
-    txa
-    clc
-    adc #$04
-    and #$0f
-    sta v_shot_idx
-
-mainloop_suppressFireShot:
-    ldx v_shot_ng
-    dex
-    stx v_shot_ng
-
-mainloop_endFireShot:
-    lda $4016   ; B
-    lda $4016   ; SELECT
-    lda $4016   ; START
-    lda $4016   ; UP
-    and #$01
-    bne mainloop_moveUp
-    lda $4016   ; DOWN
-    and #$01
-    bne mainloop_moveDown
-    jmp mainloop_inputCheck_LR
-
-mainloop_moveUp:
-    lda $4016   ; DOWN (skip)
-    ldx v_playerY
-    cpx #$28
-    bcc mainloop_inputCheck_LR ; do not move if y < 40
-    dex
-    dex
-    txa
-    sta v_playerY
-    sta sp_player1
-    sta sp_player2
-    clc
-    adc #$08
-    sta sp_player3
-    sta sp_player4
-    jmp mainloop_inputCheck_LR
-
-mainloop_moveDown:
-    ldx v_playerY
-    cpx #$D8
-    bcs mainloop_moveEnd ; do not move if 216 <= y
-    inx
-    inx
-    txa
-    sta v_playerY
-    sta sp_player1
-    sta sp_player2
-    clc
-    adc #$08
-    sta sp_player3
-    sta sp_player4
-
-mainloop_inputCheck_LR:
-    lda $4016   ; LEFT
-    and #$01
-    bne mainloop_moveLeft
-    lda $4016   ; RIGHT
-    and #$01
-    bne mainloop_moveRight
-    jmp mainloop_moveEnd
-
-mainloop_moveLeft:
-    ldx v_playerX
-    cpx #$0a
-    bcc mainloop_moveEnd ; do not move if x < 10
-    dex
-    dex
-    txa
-    sta v_playerX
-    sta sp_player1 + 3
-    sta sp_player3 + 3
-    clc
-    adc #$08
-    sta sp_player2 + 3
-    sta sp_player4 + 3
-    jmp mainloop_moveEnd
-
-mainloop_moveRight:
-    ldx v_playerX
-    cpx #$A0
-    bcs mainloop_moveEnd ; do not move if 160 <= x
-    inx
-    inx
-    txa
-    sta v_playerX
-    sta sp_player1 + 3
-    sta sp_player3 + 3
-    clc
-    adc #$08
-    sta sp_player2 + 3
-    sta sp_player4 + 3
-
-mainloop_moveEnd:
+    lda v_alive
+    beq moveloop_inputCheck_end
+    jsr sub_movePlayer
+moveloop_inputCheck_end:
 
     ldx #$00
 mainloop_moveShot:
@@ -696,6 +567,148 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     sta $2005
 mainloop_drawScore_end:
     jmp mainloop
+
+;----------------------------------------------------------
+; サブルーチン: 自機の操作
+; * 全レジスタ: サブルーチン内で自由に使える
+;----------------------------------------------------------
+sub_movePlayer:
+    lda $4016   ; A
+    and #$01
+    bne sub_movePlayer_addNewShot
+    ; reset ng flag if not push A
+    lda #$00
+    sta v_shot_ng
+    jmp sub_movePlayer_endFireShot
+
+sub_movePlayer_addNewShot:
+    lda v_shot_ng
+    bne sub_movePlayer_suppressFireShot
+    lda #$20
+    sta v_shot_ng
+
+    ldx v_shot_idx
+
+    ; suppress if shot exist yet
+    lda v_shot0_f, x
+    bne sub_movePlayer_endFireShot
+
+    lda #$01
+    sta v_shot0_f, x
+    lda v_playerX
+    clc
+    adc #$04
+    sta v_shot0_x, x
+    lda v_playerY
+    adc #$FF
+    sta v_shot0_y, x
+
+    ; initialize sprite of shot
+    sta sp_shot0, x
+    lda #$05
+    sta sp_shot0 + 1, x
+    lda #%00100000
+    sta sp_shot0 + 2, x
+    lda v_shot0_x, x
+    sta sp_shot0 + 3, x
+
+    txa
+    clc
+    adc #$04
+    and #$0f
+    sta v_shot_idx
+
+sub_movePlayer_suppressFireShot:
+    ldx v_shot_ng
+    dex
+    stx v_shot_ng
+
+sub_movePlayer_endFireShot:
+    lda $4016   ; B
+    lda $4016   ; SELECT
+    lda $4016   ; START
+    lda $4016   ; UP
+    and #$01
+    bne sub_movePlayer_up
+    lda $4016   ; DOWN
+    and #$01
+    bne sub_movePlayer_down
+    jmp sub_movePlayer_inputCheck_LR
+
+sub_movePlayer_up:
+    lda $4016   ; DOWN (skip)
+    ldx v_playerY
+    cpx #$28
+    bcc sub_movePlayer_inputCheck_LR ; do not move if y < 40
+    dex
+    dex
+    txa
+    sta v_playerY
+    sta sp_player1
+    sta sp_player2
+    clc
+    adc #$08
+    sta sp_player3
+    sta sp_player4
+    jmp sub_movePlayer_inputCheck_LR
+
+sub_movePlayer_down:
+    ldx v_playerY
+    cpx #$D8
+    bcs sub_movePlayer_inputCheck_LR ; do not move if 216 <= y
+    inx
+    inx
+    txa
+    sta v_playerY
+    sta sp_player1
+    sta sp_player2
+    clc
+    adc #$08
+    sta sp_player3
+    sta sp_player4
+
+sub_movePlayer_inputCheck_LR:
+    lda $4016   ; LEFT
+    and #$01
+    bne sub_movePlayer_left
+    lda $4016   ; RIGHT
+    and #$01
+    bne sub_movePlayer_right
+    rts
+
+sub_movePlayer_left:
+    ldx v_playerX
+    cpx #$0a
+    bcc sub_movePlayer_end ; do not move if x < 10
+    dex
+    dex
+    txa
+    sta v_playerX
+    sta sp_player1 + 3
+    sta sp_player3 + 3
+    clc
+    adc #$08
+    sta sp_player2 + 3
+    sta sp_player4 + 3
+    rts
+
+sub_movePlayer_right:
+    ldx v_playerX
+    cpx #$A0
+    bcs sub_movePlayer_end ; do not move if 160 <= x
+    inx
+    inx
+    txa
+    sta v_playerX
+    sta sp_player1 + 3
+    sta sp_player3 + 3
+    clc
+    adc #$08
+    sta sp_player2 + 3
+    sta sp_player4 + 3
+
+sub_movePlayer_end:
+    rts
 
 ;----------------------------------------------------------
 ; サブルーチン: 敵アルゴリズム（type1）
@@ -921,10 +934,10 @@ sub_newEnemyShot_end:
     rts
 
 ;----------------------------------------------------------
-; サブルーチン: 敵機と自機ショットの当たり判定
+; サブルーチン: 敵機との当たり判定
 ; * xレジスタ: 敵機のindex (このサブルーチン内ではread only)
 ; * yレジスタ: 自機ショットのindexとして使う
-; * aレジスタ: ヒットしなかった場合1, ヒットした場合0 でリターン
+; * aレジスタ: 自機ショットに敵機がヒットしなかった場合1, ヒットした場合0 でリターン
 ;----------------------------------------------------------
 sub_moveEnemy_hitCheck:
     ldy #$00
@@ -1131,6 +1144,7 @@ string_pts:
     .byte   "     00"
 
 .org $0000
+v_alive:    .byte   $00     ; 自機の生存フラグ
 v_playerX:  .byte   $00     ; 自機のX座標
 v_playerY:  .byte   $00     ; 自機のY座標
 v_shot_idx: .byte   $00     ; ショットのindex
