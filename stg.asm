@@ -239,6 +239,8 @@ clear_sprite_area:
     lda #$00
     sta v_shot_idx
     sta v_shot_ng
+    sta v_eshot_idx
+    sta v_eshot_ng
     ldx #$00
     ldy #$04
     lda #$00
@@ -525,7 +527,6 @@ mainloop_moveEnemy:
     and #$01
     bne mainloop_moveEnemy_next
     ; jmp mainloop_moveEnemy_erase
-
 mainloop_moveEnemy_erase:
     lda #$00
     sta v_enemy0_f, x
@@ -541,7 +542,6 @@ mainloop_moveEnemy_erase:
     sta sp_enemy0rb, x
     sta sp_enemy0rb + 1, x
     sta sp_enemy0rb + 3, x
-
 mainloop_moveEnemy_next:
     txa
     clc
@@ -550,6 +550,38 @@ mainloop_moveEnemy_next:
     tax
     bne mainloop_moveEnemy
 mainloop_moveEnemy_end:
+
+    ldx v_eshot_ng
+    beq mainloop_moveEShot
+    dex
+    stx v_eshot_ng
+    ldx #$00
+mainloop_moveEShot:
+    ; check flag
+    lda v_eshot0_f, x
+    beq mainloop_moveEShot_next
+    lda v_eshot0_y, x
+    clc
+    adc #$06
+    bcs mainloop_moveEShot_erase
+    ; store Y
+    sta v_eshot0_y, x
+    sta sp_eshot0, x
+    jmp mainloop_moveEShot_next
+mainloop_moveEShot_erase:
+    lda #$00
+    sta v_eshot0_f, x
+    sta sp_eshot0, x
+    sta sp_eshot0 + 1, x
+    sta sp_eshot0 + 3, x
+mainloop_moveEShot_next:
+    txa
+    clc
+    adc #$04
+    tax
+    and #$3f
+    bne mainloop_moveEShot
+mainloop_moveEShotEnd:
 
 mainloop_moveBomb:
     lda v_bomb_f
@@ -631,6 +663,17 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
 ; * 戻り値: 敵が生存中の場合はa=1を返し、敵を消す場合はa=0を返す
 ;----------------------------------------------------------
 sub_moveEnemy_type1:
+    ; 自機のX座標が近い場合はショットを発射する
+    lda v_enemy0_x, x
+    clc
+    adc #$f0 ; 本当は自機Xを+16したいが難しいので敵Xを-16する
+    cmp v_playerX
+    bcs sub_moveEnemy_type1_endFire ; enemyX(a) >= playerX + 16 is not hit
+    adc #$20
+    cmp v_playerX
+    bcc sub_moveEnemy_type1_endFire ; enemyX(a) + 16 < shotX is not hit
+    jsr sub_newEnemyShot
+sub_moveEnemy_type1_endFire:
     ; 下に移動
     lda v_enemy0_y, x
     adc #$02
@@ -710,6 +753,51 @@ sub_moveEnemy_type1_right_over:
     rts
 
 ;----------------------------------------------------------
+; サブルーチン: 敵ショット追加
+; * xレジスタ: 敵機のindex (このサブルーチン内ではread only)
+; * a,yレジスタ: サブルーチン内で自由に使える
+;----------------------------------------------------------
+sub_newEnemyShot:
+    lda v_eshot_ng
+    bne sub_newEnemyShot_end ; 発射禁止中
+    ldy v_eshot_idx
+    lda v_eshot0_f, y
+    bne sub_newEnemyShot_end ; 発射上限に達しているので禁止しておく
+    ; インデックスを加算しておく
+    tya
+    clc
+    adc #$04
+    and #$3f
+    sta v_eshot_idx
+    ; フラグを設定
+    lda #$01 ; 弾の種類を増やす場合はココの値を2とかにする
+    sta v_eshot0_f, y
+    ; X座標を設定
+    lda v_enemy0_x, x
+    clc
+    adc #$04
+    sta v_eshot0_x, y
+    sta sp_eshot0 + 3, y
+    ; Y座標を設定
+    lda v_enemy0_y, x
+    sta v_eshot0_y, y
+    sta sp_eshot0, y
+    ; 変数を初期化
+    lda #$00
+    sta v_eshot0_i, y
+    ; TILEを設定
+    lda #$0a
+    sta sp_eshot0 + 1, y
+    ; ATTRを設定
+    lda #%00100010
+    sta sp_eshot0 + 2, y
+    ; 7フレームの間、新規ショットを発射禁止にする
+    lda #$07
+    sta v_eshot_ng
+sub_newEnemyShot_end:
+    rts
+
+;----------------------------------------------------------
 ; サブルーチン: 敵機と自機ショットの当たり判定
 ; * xレジスタ: 敵機のindex (このサブルーチン内ではread only)
 ; * yレジスタ: 自機ショットのindexとして使う
@@ -773,7 +861,7 @@ palettes:
     ; Sprite
     .byte   $0f, $00, $10, $20 ; 自機 (mask, 暗い灰色, 灰色, 白)
     .byte   $0f, $06, $28, $20 ; 爆発 (mask, 赤, 黄, 白)
-    .byte   $0f, $08, $18, $28 ; まだ使っていない
+    .byte   $0f, $28, $00, $00 ; 敵弾 (mask, 黄色, 未使用, 未使用)
     .byte   $0f, $0a, $1a, $2a ; 敵 (mask, 暗い緑, 緑, 明るい緑)
 
 enemy_x_table:; $08〜$B0
@@ -800,6 +888,8 @@ v_enemy_xi: .byte   $00     ; 敵の出現位置のindex
 v_bomb_f:   .byte   $00     ; 爆発フラグ (#$00〜#$0F)
 v_bomb_x:   .byte   $00     ; 爆発のX座標
 v_bomb_y:   .byte   $00     ; 爆発のY座標
+v_eshot_idx:.byte   $00     ; 敵ショットのindex
+v_eshot_ng: .byte   $00     ; 敵ショットの発射禁止フラグ (0の時のみ発射許可)
 
 .org $0400
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
@@ -809,6 +899,26 @@ v_shot0_i:  .byte   $00     ; 未使用 (バウンダリ)
 v_shot1:    .byte   $00, $00, $00, $00
 v_shot2:    .byte   $00, $00, $00, $00
 v_shot3:    .byte   $00, $00, $00, $00
+
+v_eshot0_f: .byte   $00     ; 敵ショットの生存フラグ
+v_eshot0_x: .byte   $00     ; 敵ショットのX座標
+v_eshot0_y: .byte   $00     ; 敵ショットのY座標
+v_eshot0_i: .byte   $00     ; 敵未使用 (バウンダリ)
+v_eshot1:   .byte   $00, $00, $00, $00
+v_eshot2:   .byte   $00, $00, $00, $00
+v_eshot3:   .byte   $00, $00, $00, $00
+v_eshot4:   .byte   $00, $00, $00, $00
+v_eshot5:   .byte   $00, $00, $00, $00
+v_eshot6:   .byte   $00, $00, $00, $00
+v_eshot7:   .byte   $00, $00, $00, $00
+v_eshot8:   .byte   $00, $00, $00, $00
+v_eshot9:   .byte   $00, $00, $00, $00
+v_eshotA:   .byte   $00, $00, $00, $00
+v_eshotB:   .byte   $00, $00, $00, $00
+v_eshotC:   .byte   $00, $00, $00, $00
+v_eshotD:   .byte   $00, $00, $00, $00
+v_eshotE:   .byte   $00, $00, $00, $00
+v_eshotF:   .byte   $00, $00, $00, $00
 
 v_enemy0_f: .byte   $00     ; 敵の生存フラグ（兼種別判定フラグ）
 v_enemy0_x: .byte   $00     ; 敵のX座標
@@ -867,6 +977,22 @@ sp_bomb1:   .byte   $00,    $00,    $00,    $00     ; 41: bomb (left-top)
 sp_bomb2:   .byte   $00,    $00,    $00,    $00     ; 42: bomb (right-top)
 sp_bomb3:   .byte   $00,    $00,    $00,    $00     ; 43: bomb (left-bottom)
 sp_bomb4:   .byte   $00,    $00,    $00,    $00     ; 44: bomb (right-bottom)
+sp_eshot0:  .byte   $00,    $00,    $00,    $00     ; 45: enemy shot (0)
+sp_eshot1:  .byte   $00,    $00,    $00,    $00     ; 46: enemy shot (1)
+sp_eshot2:  .byte   $00,    $00,    $00,    $00     ; 47: enemy shot (2)
+sp_eshot3:  .byte   $00,    $00,    $00,    $00     ; 48: enemy shot (3)
+sp_eshot4:  .byte   $00,    $00,    $00,    $00     ; 49: enemy shot (4)
+sp_eshot5:  .byte   $00,    $00,    $00,    $00     ; 50: enemy shot (5)
+sp_eshot6:  .byte   $00,    $00,    $00,    $00     ; 51: enemy shot (6)
+sp_eshot7:  .byte   $00,    $00,    $00,    $00     ; 52: enemy shot (7)
+sp_eshot8:  .byte   $00,    $00,    $00,    $00     ; 53: enemy shot (8)
+sp_eshot9:  .byte   $00,    $00,    $00,    $00     ; 54: enemy shot (9)
+sp_eshotA:  .byte   $00,    $00,    $00,    $00     ; 55: enemy shot (10)
+sp_eshotB:  .byte   $00,    $00,    $00,    $00     ; 56: enemy shot (11)
+sp_eshotC:  .byte   $00,    $00,    $00,    $00     ; 57: enemy shot (12)
+sp_eshotD:  .byte   $00,    $00,    $00,    $00     ; 58: enemy shot (13)
+sp_eshotE:  .byte   $00,    $00,    $00,    $00     ; 59: enemy shot (14)
+sp_eshotF:  .byte   $00,    $00,    $00,    $00     ; 60: enemy shot (15)
 
 .segment "VECINFO"
     .word   $0000
