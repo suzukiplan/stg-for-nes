@@ -308,6 +308,8 @@ mainloop:
 
 mainloop_addNewEnemy:
     ldx v_enemy_idx
+    lda v_enemy0_f, x
+    bne moveloop_inputCheck ; まだ生きているので登場を抑止
     lda #$01 ; TODO: 暫定的に同じ種類の敵だけ出現させている
     sta v_enemy0_f, x
     lda #$00
@@ -537,15 +539,23 @@ mainloop_moveEnemy:
     ; check flag
     lda v_enemy0_f, x
     beq mainloop_moveEnemy_next
-    ; TODO: とりあえず全部同じ敵キャラとして動かしておく
-    ; v_enemy0_f の値を見て敵の種別毎に異なる動きをするようにしたい
+    and #$80
+    bne mainloop_moveEnemy_typeM ; 補数bitが立っている場合はメダル
+mainloop_moveEnemy_type1:
     jsr sub_moveEnemy_type1
     and #$01
     beq mainloop_moveEnemy_erase
     jsr sub_moveEnemy_hitCheck
     and #$01
     bne mainloop_moveEnemy_next
-    ; jmp mainloop_moveEnemy_erase
+mainloop_moveEnemy_toMedal: ; 敵をメダルに変化させる
+    jsr sub_changeEnemyToMedal
+    jmp mainloop_moveEnemy_next
+mainloop_moveEnemy_typeM:
+    jsr sub_moveEnemy_typeM
+    and #$01
+    beq mainloop_moveEnemy_erase
+    jmp mainloop_moveEnemy_next
 mainloop_moveEnemy_erase:
     lda #$00
     sta v_enemy0_f, x
@@ -784,6 +794,88 @@ sub_moveEnemy_type1_right_over:
     rts
 
 ;----------------------------------------------------------
+; サブルーチン: 敵をメダルに変化させる
+; * xレジスタ: 敵機(メダル)のindex (このサブルーチン内ではread only)
+; * a,yレジスタ: サブルーチン内で自由に使える
+;----------------------------------------------------------
+sub_changeEnemyToMedal:
+    lda #$80
+    sta v_enemy0_f, x
+    lda #$fc
+    sta v_enemy0_i, x
+    lda #$20
+    sta sp_enemy0lt + 1, x
+    lda #$24
+    sta sp_enemy0rt + 1, x
+    lda #$28
+    sta sp_enemy0lb + 1, x
+    lda #$2c
+    sta sp_enemy0rb + 1, x
+    lda #%00100010
+    sta sp_enemy0lt + 2, x
+    sta sp_enemy0rt + 2, x
+    sta sp_enemy0lb + 2, x
+    sta sp_enemy0rb + 2, x
+    rts
+
+;----------------------------------------------------------
+; サブルーチン: メダル (敵の構造体とスプライトを流用)
+; * xレジスタ: 敵機(メダル)のindex (このサブルーチン内ではread only)
+; * a,yレジスタ: サブルーチン内で自由に使える
+; * 戻り値: 敵が生存中の場合はa=1を返し、敵を消す場合はa=0を返す
+;----------------------------------------------------------
+sub_moveEnemy_typeM:
+    ; Y座標をiで加算
+    lda v_enemy0_y, x
+    clc
+    adc v_enemy0_i, x
+    cmp #$f6
+    bcc sub_moveEnemy_typeM_alive ; 加算後のYが$f6未満なら生存中としておく
+    lda #$00
+    rts
+sub_moveEnemy_typeM_alive:
+    sta v_enemy0_y, x
+    sta sp_enemy0lb, x
+    sta sp_enemy0rb, x
+    clc
+    adc #$f8
+    sta sp_enemy0lt, x
+    sta sp_enemy0rt, x
+    ; フラグの下位bitをインクリメント
+    lda v_enemy0_f, x
+    clc
+    adc #$01
+    and #$07
+    bne sub_moveEnemy_typeM_notInc
+    ; 8フレームに1回落下速度を上げる
+    lda v_enemy0_i, x
+    cmp #$04
+    beq sub_moveEnemy_typeM_notInc ; 落下速度4以上ならもうこれ以上早くしない
+    clc
+    adc #$02
+    sta v_enemy0_i, x
+    lda #$00
+sub_moveEnemy_typeM_notInc:
+    ; 回転させる
+    pha
+    ror
+    and #$03
+    clc
+    adc #$20
+    sta sp_enemy0lt + 1, x
+    adc #$04
+    sta sp_enemy0rt + 1, x
+    adc #$04
+    sta sp_enemy0lb + 1, x
+    adc #$04
+    sta sp_enemy0rb + 1, x
+    pla
+    ora #$80
+    sta v_enemy0_f, x
+    lda #$01
+    rts
+
+;----------------------------------------------------------
 ; サブルーチン: 敵ショット追加
 ; * xレジスタ: 敵機のindex (このサブルーチン内ではread only)
 ; * a,yレジスタ: サブルーチン内で自由に使える
@@ -964,7 +1056,7 @@ sub_addScore10000_display:
     sta v_sc10000
     lda #$21
     sta $2006
-    lda #$70
+    lda #$79
     sta $2006
     lda v_sc10000
     clc
@@ -984,7 +1076,7 @@ sub_addScore100000_display:
     sta v_sc100000
     lda #$21
     sta $2006
-    lda #$70
+    lda #$78
     sta $2006
     lda v_sc100000
     clc
@@ -1003,7 +1095,7 @@ sub_addScore1000000_display:
     sta v_sc1000000
     lda #$21
     sta $2006
-    lda #$70
+    lda #$77
     sta $2006
     lda v_sc1000000
     clc
@@ -1022,7 +1114,7 @@ palettes:
     ; Sprite
     .byte   $0f, $00, $10, $20 ; 自機 (mask, 暗い灰色, 灰色, 白)
     .byte   $0f, $06, $28, $20 ; 爆発 (mask, 赤, 黄, 白)
-    .byte   $0f, $28, $00, $00 ; 敵弾 (mask, 黄色, 未使用, 未使用)
+    .byte   $0f, $28, $11, $30 ; 敵弾, ボーナス (mask, 黄色, 青, 白)
     .byte   $0f, $0a, $1a, $2a ; 敵 (mask, 暗い緑, 緑, 明るい緑)
 
 enemy_x_table:; $08〜$B0
