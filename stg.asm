@@ -814,7 +814,7 @@ sub_moveEnemy_type1_right_over:
 sub_changeEnemyToMedal:
     lda #$80
     sta v_enemy0_f, x
-    lda #$fc
+    lda #$fe
     sta v_enemy0_i, x
     lda #$20
     sta sp_enemy0lt + 1, x
@@ -858,19 +858,20 @@ sub_moveEnemy_typeM_alive:
     lda v_enemy0_f, x
     clc
     adc #$01
-    and #$07
+    and #$0f
     bne sub_moveEnemy_typeM_notInc
-    ; 8フレームに1回落下速度を上げる
+    ; 16フレームに1回落下速度を上げる
     lda v_enemy0_i, x
-    cmp #$04
-    beq sub_moveEnemy_typeM_notInc ; 落下速度4以上ならもうこれ以上早くしない
+    cmp #$03
+    beq sub_moveEnemy_typeM_notInc ; 落下速度3以上ならもうこれ以上早くしない
     clc
-    adc #$02
+    adc #$01
     sta v_enemy0_i, x
     lda #$00
 sub_moveEnemy_typeM_notInc:
     ; 回転させる
     pha
+    ror
     ror
     and #$03
     clc
