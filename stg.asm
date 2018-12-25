@@ -17,6 +17,7 @@
     ldx #$ff
     txs
 
+restart:
 ; Screen off
     lda #$00
     sta $2000
@@ -376,6 +377,15 @@ moveloop_inputCheck:
     jmp mainloop_gameOver_end
 
 mainloop_gameOver:
+    lda $4016   ; A
+    lda $4016   ; B 
+    lda $4016   ; SELECT
+    lda $4016   ; START
+    and #$01
+    beq mainloop_gameOver_start
+    jmp restart
+
+mainloop_gameOver_start:
     lda #%00100001
     sta sp_player1 + 2
     sta sp_player2 + 2
@@ -588,6 +598,47 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda #$3
     sta $4014
 
+    ; ゲームオーバー表示 (５フレーム目にのみ描画)
+    lda v_gameOver
+    cmp #$05
+    bne mainloop_drawScore
+
+    ldy #$09
+    ldx #$00
+    lda #$21
+    sta $2006
+    lda #$a7
+    sta $2006
+mainloop_drawGameOver1:
+    lda string_game_over, x
+    clc
+    adc #$80
+    sta $2007
+    inx
+    dey
+    bne mainloop_drawGameOver1
+
+    ldy #$13
+    ldx #$00
+    lda #$21
+    sta $2006
+    lda #$e2
+    sta $2006
+mainloop_drawGameOver2:
+    lda string_push_start_to_retry, x
+    clc
+    adc #$80
+    sta $2007
+    inx
+    dey
+    bne mainloop_drawGameOver2
+ 
+    lda #$00
+    sta $2005
+    sta $2005
+    jmp mainloop
+
+mainloop_drawScore:
     ; スコア更新 (描画を伴うのでvBlank中でなければならない)
     ; 負荷軽減のため1フレームにつき最大10加算とする
     ldx v_sc
@@ -1249,6 +1300,12 @@ string_top:
 
 string_pts:
     .byte   "     00"
+
+string_game_over:
+    .byte   "GAME OVER"
+
+string_push_start_to_retry:
+    .byte   "PUSH START TO RETRY"
 
 .org $0000
 v_gameOver: .byte   $00     ; ゲームオーバーカウンタ
