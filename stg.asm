@@ -192,8 +192,8 @@ clear_sprite_area:
     bne clear_sprite_area
 
 ; setup player variables
-    lda #$01
-    sta v_alive
+    lda #$00
+    sta v_gameOver
     lda #$50
     sta v_playerX
     tax
@@ -370,8 +370,8 @@ mainloop_addNewEnemy:
     sta v_enemy_idx
 
 moveloop_inputCheck:
-    lda v_alive
-    beq moveloop_inputCheck_end
+    lda v_gameOver
+    bne moveloop_inputCheck_end
     jsr sub_movePlayer
 moveloop_inputCheck_end:
 
@@ -1144,7 +1144,7 @@ string_pts:
     .byte   "     00"
 
 .org $0000
-v_alive:    .byte   $00     ; 自機の生存フラグ
+v_gameOver: .byte   $00     ; ゲームオーバーカウンタ
 v_playerX:  .byte   $00     ; 自機のX座標
 v_playerY:  .byte   $00     ; 自機のY座標
 v_shot_idx: .byte   $00     ; ショットのindex
