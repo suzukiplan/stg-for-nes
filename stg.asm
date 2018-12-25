@@ -291,6 +291,19 @@ setup_enemy_vars:
     dey
     bne setup_enemy_vars
 
+; setup enemy shot variables
+    ldx #$00
+    ldy #$10
+    lda #$00
+setup_eshot_vars:
+    sta v_eshot0_f, x
+    inx
+    inx
+    inx
+    inx
+    dey
+    bne setup_eshot_vars
+
 ; loop infinite
 mainloop:
     ; clear joy-pad
@@ -505,12 +518,33 @@ mainloop_moveEShot:
     beq mainloop_moveEShot_next
     lda v_eshot0_y, x
     clc
-    adc #$06
+    adc #$05
     bcs mainloop_moveEShot_erase
     ; store Y
     sta v_eshot0_y, x
     sta sp_eshot0, x
-    jmp mainloop_moveEShot_next
+
+    ; 自機との当たり判定
+    lda v_gameOver
+    bne mainloop_moveEShot_next
+    lda v_eshot0_x, x
+    clc
+    adc #$f0 ; 本当はplayerXを+16したいが難しいのでeshotXを-16する
+    cmp v_playerX
+    bcs mainloop_moveEShot_next ; eshotX(a) >= playerX+16 is not hit
+    adc #$18
+    cmp v_playerX
+    bcc mainloop_moveEShot_next ; eshotX+8(a) < playerX is not hit
+    lda v_eshot0_y, x
+    adc #$EF ; carry が 1 なので #$F0
+    cmp v_playerY
+    bcs mainloop_moveEShot_next ; eshotY(a) >= playerY+16 is not hit
+    adc #$18
+    cmp v_playerY
+    bcc mainloop_moveEShot_next ; enemyY+8(a) < playerY is not hit
+    lda #$01
+    sta v_gameOver
+
 mainloop_moveEShot_erase:
     lda #$00
     sta v_eshot0_f, x
