@@ -854,6 +854,45 @@ sub_moveEnemy_typeM_alive:
     adc #$f8
     sta sp_enemy0lt, x
     sta sp_enemy0rt, x
+
+    ; 自機との当たり判定
+    lda v_gameOver
+    bne sub_moveEnemy_typeM_noHit ; ゲームオーバーフラグが立っている場合はチェックしない
+    lda v_enemy0_x, x
+    cmp #$10
+    bcs sub_moveEnemy_typeM_over16 ; 16以上の時の判定
+    ; 16未満の時はxが16以下ならhitとして縦のチェック（xのレンジチェックをskip）
+    lda v_playerX
+    cmp #$10
+    bcs sub_moveEnemy_typeM_noHit
+    jmp sub_moveEnemy_typeM_checkY
+sub_moveEnemy_typeM_over16:
+    clc
+    adc #$f0 ; 本当はplayerXを+16したいが難しいので敵Xを-16する
+    cmp v_playerX
+    bcs sub_moveEnemy_typeM_noHit ; enemyX(a) >= playerX+16 is not hit
+    adc #$20
+    cmp v_playerX
+    bcc sub_moveEnemy_typeM_noHit ; enemyX+16(a) < playerX is not hit
+sub_moveEnemy_typeM_checkY:
+    lda v_enemy0_y, x
+    clc
+    adc #$E8 ; 敵のYは+8から始まるので-8しつつplayerY+16としたいので更に-16
+    cmp v_playerY
+    bcs sub_moveEnemy_typeM_noHit ; enemyY-8(a) >= playerY+16 is not hit
+    adc #$28
+    cmp v_playerY
+    bcc sub_moveEnemy_typeM_noHit ; enemyY+16(a) < playerY is not hit
+
+    ; 衝突したので消す
+    lda v_sc
+    clc
+    adc #$0a
+    sta v_sc
+    lda #$00
+    rts
+
+sub_moveEnemy_typeM_noHit:
     ; フラグの下位bitをインクリメント
     lda v_enemy0_f, x
     clc
