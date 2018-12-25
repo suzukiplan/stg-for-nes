@@ -371,9 +371,42 @@ mainloop_addNewEnemy:
 
 moveloop_inputCheck:
     lda v_gameOver
-    bne moveloop_inputCheck_end
+    bne mainloop_gameOver
     jsr sub_movePlayer
-moveloop_inputCheck_end:
+    jmp mainloop_gameOver_end
+
+mainloop_gameOver:
+    lda #%00100001
+    sta sp_player1 + 2
+    sta sp_player2 + 2
+    sta sp_player3 + 2
+    sta sp_player4 + 2
+    lda v_gameOver
+    cmp #$10
+    bcs mainloop_gameOver_erasePlayer
+    tax
+    inx
+    stx v_gameOver
+    ror
+    ror
+    and #$03
+    clc
+    adc #$10
+    sta sp_player1 + 1
+    adc #$04
+    sta sp_player2 + 1
+    adc #$04
+    sta sp_player3 + 1
+    adc #$04
+    sta sp_player4 + 1
+    jmp mainloop_gameOver_end
+mainloop_gameOver_erasePlayer:
+    lda #$00
+    sta sp_player1 + 1
+    sta sp_player2 + 1
+    sta sp_player3 + 1
+    sta sp_player4 + 1
+mainloop_gameOver_end:
 
     ldx #$00
 mainloop_moveShot:
@@ -762,8 +795,7 @@ sub_moveEnemy_type1_left:
     adc #$08
     sta sp_enemy0rt + 3, x
     sta sp_enemy0rb + 3, x
-    lda #$01
-    rts
+    jmp sub_moveEnemy_hitCheck
 sub_moveEnemy_type1_left_over:
     lda #$00
     rts
@@ -779,14 +811,12 @@ sub_moveEnemy_type1_downOnly:
 sub_moveEnemy_type1_downOnly_toLeft:
     lda #$02
     sta v_enemy0_i, x
-    lda #$01
-    rts
+    jmp sub_moveEnemy_type1_hitCheck
 sub_moveEnemy_type1_downOnly_toRight:
     lda #$01
     sta v_enemy0_i, x
 sub_moveEnemy_type1_downOnly_keep:
-    lda #$01
-    rts
+    jmp sub_moveEnemy_type1_hitCheck
 
 sub_moveEnemy_type1_right:
     ldy v_enemy0_x, x
@@ -800,10 +830,47 @@ sub_moveEnemy_type1_right:
     adc #$08
     sta sp_enemy0rt + 3, x
     sta sp_enemy0rb + 3, x
-    lda #$01
-    rts
+    jmp sub_moveEnemy_type1_hitCheck
 sub_moveEnemy_type1_right_over:
     lda #$00
+    rts
+
+sub_moveEnemy_type1_hitCheck:
+    ; 自機との当たり判定
+    lda v_gameOver
+    bne sub_moveEnemy_type1_noHit ; ゲームオーバーフラグが立っている場合はチェックしない
+    lda v_enemy0_x, x
+    cmp #$10
+    bcs sub_moveEnemy_type1_over16 ; 16以上の時の判定
+    ; 16未満の時はxが16以下ならhitとして縦のチェック（xのレンジチェックをskip）
+    lda v_playerX
+    cmp #$10
+    bcs sub_moveEnemy_type1_noHit
+    jmp sub_moveEnemy_type1_checkY
+sub_moveEnemy_type1_over16:
+    clc
+    adc #$f0 ; 本当はplayerXを+16したいが難しいので敵Xを-16する
+    cmp v_playerX
+    bcs sub_moveEnemy_type1_noHit ; enemyX(a) >= playerX+16 is not hit
+    adc #$20
+    cmp v_playerX
+    bcc sub_moveEnemy_type1_noHit ; enemyX+16(a) < playerX is not hit
+sub_moveEnemy_type1_checkY:
+    lda v_enemy0_y, x
+    clc
+    adc #$E8 ; 敵のYは+8から始まるので-8しつつplayerY+16としたいので更に-16
+    cmp v_playerY
+    bcs sub_moveEnemy_type1_noHit ; enemyY-8(a) >= playerY+16 is not hit
+    adc #$28
+    cmp v_playerY
+    bcc sub_moveEnemy_type1_noHit ; enemyY+16(a) < playerY is not hit
+
+    ; 衝突したのでgame overにする
+    lda #$01
+    sta v_gameOver
+
+sub_moveEnemy_type1_noHit:
+    lda #$01
     rts
 
 ;----------------------------------------------------------
