@@ -163,14 +163,26 @@ draw_score_pts:
     sta $2005
 
 ; screen on
-    lda #$08
+    ; bit7: nmi interrupt
+    ; bit6: PPU type (0=master, 1=slave)
+    ; bit5: size of sprite (0=8x8, 1=8x16)
+    ; bit4: BG chr table (0=$0000, 1=$1000)
+    ; bit3: sprite chr table (0=$0000, 1=$1000)
+    ; bit2: address addition (0=+1, 1=+32)
+    ; bit1~0: main screen (0=$2000, 1=$2400, 2=$2800, 3=$2c00)
+    ;     76543210
+    lda #%00001000
     sta $2000
-    lda #$1e
+    ; bit7: red
+    ; bit6: green
+    ; bit5: blue
+    ; bit4: sprite
+    ; bit3: BG
+    ; bit2: visible left-top 8x sprite
+    ; bit1: visible left-top 8x BG
+    ; bit0: color (0=full, 1=mono)
+    lda #%00011110
     sta $2001
-
-; drawing sprite pattern table address
-    lda #$00
-    sta $2003
 
     ldx #$00
     lda #$00
@@ -241,6 +253,13 @@ clear_sprite_area:
     sta v_shot_ng
     sta v_eshot_idx
     sta v_eshot_ng
+    sta v_sc
+    sta v_sc10
+    sta v_sc100
+    sta v_sc1000
+    sta v_sc10000
+    sta v_sc100000
+    sta v_sc1000000
     ldx #$00
     ldy #$04
     lda #$00
@@ -654,6 +673,18 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     bpl mainloop_sprite_DMA ; wait for vBlank
     lda #$3
     sta $4014
+
+    ; スコア更新 (描画を伴うのでvBlank中でなければならない)
+    ; 負荷軽減のため1フレームにつき最大10加算とする
+    ldx v_sc
+    beq mainloop_drawScore_end
+    jsr sub_addScore10
+    dex
+    stx v_sc
+    lda #$00
+    sta $2005
+    sta $2005
+mainloop_drawScore_end:
     jmp mainloop
 
 ;----------------------------------------------------------
@@ -832,6 +863,11 @@ sub_moveEnemy_hitCheck_loop:
     clc
     adc #$f8
     sta v_bomb_y
+    ; スコアを+30点加算
+    lda v_sc
+    clc
+    adc #$03
+    sta v_sc
     ; 自機ショットを消滅させつつ, a = 0 でリターン
     lda #$00
     sta v_shot0_f, y
@@ -848,6 +884,131 @@ sub_moveEnemy_hitCheck_next:
     bne sub_moveEnemy_hitCheck_loop
     ; TODO: 敵の爆破アニメーションの開始指示をするならココがベスト
     lda #$01 ; a = 1 でリターン（ヒットしなかった）
+    rts
+
+;----------------------------------------------------------
+; サブルーチン: スコアを加算+描画
+; * xレジスタ: unused (このサブルーチン内では使わない)
+; * yレジスタ: unused (このサブルーチン内では使わない)
+; * aレジスタ: 計算用のワーク
+;----------------------------------------------------------
+sub_addScore10:
+    lda v_sc10
+    clc
+    adc #$01
+    cmp #$0a
+    bcc sub_addScore10_display
+    jsr sub_addScore100
+    lda #$00
+sub_addScore10_display:
+    sta v_sc10
+    lda #$21
+    sta $2006
+    lda #$7c
+    sta $2006
+    lda v_sc10
+    clc
+    adc #$30
+    sta $2007
+    rts
+
+sub_addScore100:
+    lda v_sc100
+    clc
+    adc #$01
+    cmp #$0a
+    bcc sub_addScore100_display
+    jsr sub_addScore1000
+    lda #$00
+sub_addScore100_display:
+    sta v_sc100
+    lda #$21
+    sta $2006
+    lda #$7b
+    sta $2006
+    lda v_sc100
+    clc
+    adc #$30
+    sta $2007
+    rts
+
+sub_addScore1000:
+    lda v_sc1000
+    clc
+    adc #$01
+    cmp #$0a
+    bcc sub_addScore1000_display
+    jsr sub_addScore10000
+    lda #$00
+sub_addScore1000_display:
+    sta v_sc1000
+    lda #$21
+    sta $2006
+    lda #$7a
+    sta $2006
+    lda v_sc1000
+    clc
+    adc #$30
+    sta $2007
+    rts
+
+sub_addScore10000:
+    lda v_sc10000
+    clc
+    adc #$01
+    cmp #$0a
+    bcc sub_addScore10000_display
+    jsr sub_addScore100000
+    lda #$00
+sub_addScore10000_display:
+    sta v_sc10000
+    lda #$21
+    sta $2006
+    lda #$70
+    sta $2006
+    lda v_sc10000
+    clc
+    adc #$30
+    sta $2007
+    rts
+
+sub_addScore100000:
+    lda v_sc100000
+    clc
+    adc #$01
+    cmp #$0a
+    bcc sub_addScore100000_display
+    jsr sub_addScore1000000
+    lda #$00
+sub_addScore100000_display:
+    sta v_sc100000
+    lda #$21
+    sta $2006
+    lda #$70
+    sta $2006
+    lda v_sc100000
+    clc
+    adc #$30
+    sta $2007
+    rts
+
+sub_addScore1000000:
+    lda v_sc1000000
+    clc
+    adc #$01
+    cmp #$0a
+    bcc sub_addScore1000000_display
+    rts
+sub_addScore1000000_display:
+    sta v_sc1000000
+    lda #$21
+    sta $2006
+    lda #$70
+    sta $2006
+    lda v_sc1000000
+    clc
+    adc #$30
+    sta $2007
     rts
 
 .endproc
@@ -890,6 +1051,13 @@ v_bomb_x:   .byte   $00     ; 爆発のX座標
 v_bomb_y:   .byte   $00     ; 爆発のY座標
 v_eshot_idx:.byte   $00     ; 敵ショットのindex
 v_eshot_ng: .byte   $00     ; 敵ショットの発射禁止フラグ (0の時のみ発射許可)
+v_sc:       .byte   $00     ; 1フレームあたりのスコア加算回数
+v_sc10:     .byte   $00     ; スコア(10の位)
+v_sc100:    .byte   $00     ; スコア(100の位)
+v_sc1000:   .byte   $00     ; スコア(1000の位)
+v_sc10000:  .byte   $00     ; スコア(10000の位)
+v_sc100000: .byte   $00     ; スコア(100000の位)
+v_sc1000000:.byte   $00     ; スコア(1000000の位)
 
 .org $0400
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
