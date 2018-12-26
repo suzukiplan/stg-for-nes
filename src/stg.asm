@@ -17,15 +17,15 @@
     ldx #$ff
     txs
 
-.include "stg0_setup.asm"
-.include "stg1_mainloop.asm"
-.include "stgS_movePlayer.asm"
-.include "stgS_moveEnemy_type1.asm"
-.include "stgS_moveEnemy_typeM.asm"
-.include "stgS_changeEnemyToMedal.asm"
-.include "stgS_newEnemyShot.asm"
-.include "stgS_moveEnemy_hitCheck.asm"
-.include "stgS_addScore.asm"
+.include "stg-00setup.asm"
+.include "stg-01mainloop.asm"
+.include "stg-movePlayer.asm"
+.include "stg-moveEnemy_type1.asm"
+.include "stg-moveEnemy_typeM.asm"
+.include "stg-changeEnemyToMedal.asm"
+.include "stg-newEnemyShot.asm"
+.include "stg-moveEnemy_hitCheck.asm"
+.include "stg-addScore.asm"
 
 .endproc
 

@@ -1,15 +1,15 @@
 IMAGES = stg-sprite.chr stg-bg.chr
 SOURCES = \
 	src/stg.asm\
-	src/stg0_setup.asm\
-	src/stg1_mainloop.asm\
-	src/stgS_movePlayer.asm\
-	src/stgS_moveEnemy_type1.asm\
-	src/stgS_moveEnemy_typeM.asm\
-	src/stgS_changeEnemyToMedal.asm\
-	src/stgS_newEnemyShot.asm\
-	src/stgS_moveEnemy_hitCheck.asm\
-	src/stgS_addScore.asm\
+	src/stg-00setup.asm\
+	src/stg-01mainloop.asm\
+	src/stg-movePlayer.asm\
+	src/stg-moveEnemy_type1.asm\
+	src/stg-moveEnemy_typeM.asm\
+	src/stg-changeEnemyToMedal.asm\
+	src/stg-newEnemyShot.asm\
+	src/stg-moveEnemy_hitCheck.asm\
+	src/stg-addScore.asm\
 
 all: stg.nes
 	open stg.nes
