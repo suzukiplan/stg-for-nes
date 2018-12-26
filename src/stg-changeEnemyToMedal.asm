@@ -5,7 +5,7 @@
 ;----------------------------------------------------------
 sub_changeEnemyToMedal:
     lda v_enemy0_y, x
-    cmp #$14
+    cmp #$30
     bcs sub_changeEnemyToMedal_enable
     lda #$00
     sta v_enemy0_f, x
