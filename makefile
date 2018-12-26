@@ -12,6 +12,7 @@ SOURCES = \
 	src/stg-addScore.asm\
 
 all: stg.nes
+	open stg.nes
 
 stg.nes: $(IMAGES) stg.o
 	ld65 -o stg.nes --config stg.cfg --obj stg.o
