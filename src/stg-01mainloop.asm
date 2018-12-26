@@ -355,6 +355,50 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda #$3
     sta $4014
 
+    ; 星を4フレームにつき1回動かす
+    lda v_counter
+    and #$03
+    bne mainloop_drawStar_skip
+    ldx #$00
+mainloop_drawStar:
+    lda v_star0 + 1, x
+    sta $2006
+    lda v_star0 + 2, x
+    sta $2006
+    lda v_star0, x
+    clc
+    adc #$01
+    and #$07
+    sta v_star0, x
+    sta $2007
+    bne mainloop_drawStar_next
+
+    ; change position
+    ldy v_star_pos
+    iny
+    tya
+    and #$1f
+    sta v_star_pos
+    tay
+    lda star_high, y
+    sta v_star0 + 1, x
+    lda star_low1, y
+    clc
+    adc star_low2, y
+    sta v_star0 + 2, x
+
+mainloop_drawStar_next:
+    ; increment index
+    txa
+    adc #$04
+    and #$0f
+    tax
+    bne mainloop_drawStar
+    lda #$00
+    sta $2005
+    sta $2005
+mainloop_drawStar_skip:
+
     ; ゲームオーバー表示 (５フレーム目にのみ描画)
     lda v_gameOver
     cmp #$05

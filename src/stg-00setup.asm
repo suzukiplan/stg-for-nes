@@ -138,34 +138,6 @@ draw_score_pts:
     dey
     bne draw_score_pts
 
-
-; scroll setting
-    lda #$00
-    sta $2005
-    sta $2005
-
-; screen on
-    ; bit7: nmi interrupt
-    ; bit6: PPU type (0=master, 1=slave)
-    ; bit5: size of sprite (0=8x8, 1=8x16)
-    ; bit4: BG chr table (0=$0000, 1=$1000)
-    ; bit3: sprite chr table (0=$0000, 1=$1000)
-    ; bit2: address addition (0=+1, 1=+32)
-    ; bit1~0: main screen (0=$2000, 1=$2400, 2=$2800, 3=$2c00)
-    ;     76543210
-    lda #%00001000
-    sta $2000
-    ; bit7: red
-    ; bit6: green
-    ; bit5: blue
-    ; bit4: sprite
-    ; bit3: BG
-    ; bit2: visible left-top 8x sprite
-    ; bit1: visible left-top 8x BG
-    ; bit0: color (0=full, 1=mono)
-    lda #%00011110
-    sta $2001
-
     ldx #$00
     lda #$00
 clear_sprite_area:
@@ -285,7 +257,59 @@ setup_eshot_vars:
     dey
     bne setup_eshot_vars
 
+; setup Stars
+    ldx #$00
+    ldy #$00
+setup_stars:
+    tya
+    sta v_star0, x
+    txa
+    lda star_high, y
+    sta v_star0 + 1, x
+    sta $2006
+    lda star_low1, y
+    clc
+    adc star_low2, y
+    sta v_star0 + 2, x
+    sta $2006
+    lda v_star0, x
+    sta $2007
+    iny
+    txa
+    clc
+    adc #$04
+    and #$0f
+    tax
+    bne setup_stars
+
 ; setup APU
     lda #%00001111
     sta $4015
     sta v_eshot_se
+
+; scroll setting
+    lda #$00
+    sta $2005
+    sta $2005
+
+; screen on
+    ; bit7: nmi interrupt
+    ; bit6: PPU type (0=master, 1=slave)
+    ; bit5: size of sprite (0=8x8, 1=8x16)
+    ; bit4: BG chr table (0=$0000, 1=$1000)
+    ; bit3: sprite chr table (0=$0000, 1=$1000)
+    ; bit2: address addition (0=+1, 1=+32)
+    ; bit1~0: main screen (0=$2000, 1=$2400, 2=$2800, 3=$2c00)
+    ;     76543210
+    lda #%00001000
+    sta $2000
+    ; bit7: red
+    ; bit6: green
+    ; bit5: blue
+    ; bit4: sprite
+    ; bit3: BG
+    ; bit2: visible left-top 8x sprite
+    ; bit1: visible left-top 8x BG
+    ; bit0: color (0=full, 1=mono)
+    lda #%00011110
+    sta $2001
