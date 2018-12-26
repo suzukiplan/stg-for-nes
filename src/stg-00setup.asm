@@ -267,9 +267,7 @@ setup_stars:
     lda star_high, y
     sta v_star0 + 1, x
     sta $2006
-    lda star_low1, y
-    clc
-    adc star_low2, y
+    lda star_low, y
     sta v_star0 + 2, x
     sta $2006
     lda v_star0, x
