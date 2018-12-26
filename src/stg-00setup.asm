@@ -99,16 +99,72 @@ draw_top:
 ; write string to the name table (TOP-PTS)
     lda #$20
     sta $2006
+    lda v_hi1000000
+    bne draw_top_pts_1000000
+    lda v_hi100000
+    bne draw_top_pts_100000
+    lda v_hi10000
+    bne draw_top_pts_10000
+    lda v_hi1000
+    bne draw_top_pts_1000
+    lda v_hi100
+    bne draw_top_pts_100
+    jmp draw_top_pts_10
+draw_top_pts_1000000:
     lda #$b7
     sta $2006
-    ldx #$00
-    ldy #$7
-draw_top_pts:
-    lda string_pts, x
+    clc
+    adc #$30
     sta $2007
-    inx
-    dey
-    bne draw_top_pts
+draw_top_pts_100000_start:
+    lda v_hi100000
+    clc
+    adc #$30
+    sta $2007
+draw_top_pts_10000_start:
+    lda v_hi10000
+    clc
+    adc #$30
+    sta $2007
+draw_top_pts_1000_start:
+    lda v_hi1000
+    clc
+    adc #$30
+    sta $2007
+draw_top_pts_100_start:
+    lda v_hi100
+    clc
+    adc #$30
+    sta $2007
+draw_top_pts_10_start:
+    lda v_hi10
+    clc
+    adc #$30
+    sta $2007
+    lda #$30
+    sta $2007
+    jmp draw_top_pts_end
+draw_top_pts_100000:
+    lda #$b8
+    sta $2006
+    jmp draw_top_pts_100000_start
+draw_top_pts_10000:
+    lda #$b9
+    sta $2006
+    jmp draw_top_pts_10000_start
+draw_top_pts_1000:
+    lda #$ba
+    sta $2006
+    jmp draw_top_pts_1000_start
+draw_top_pts_100:
+    lda #$bb
+    sta $2006
+    jmp draw_top_pts_100_start
+draw_top_pts_10:
+    lda #$bc
+    sta $2006
+    jmp draw_top_pts_10_start
+draw_top_pts_end:
 
 ; write string to the name table (SCORE)
     lda #$21
@@ -209,6 +265,9 @@ clear_sprite_area:
     sta v_shot_ng
     sta v_eshot_idx
     sta v_eshot_ng
+    sta v_sc
+    sta v_sc + 1
+    sta v_sc + 2
     sta v_sc_plus
     sta v_sc10
     sta v_sc100
@@ -216,6 +275,7 @@ clear_sprite_area:
     sta v_sc10000
     sta v_sc100000
     sta v_sc1000000
+    sta v_hi_update
     ldx #$00
     ldy #$04
     lda #$00

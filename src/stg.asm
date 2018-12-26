@@ -17,6 +17,24 @@
     ldx #$ff
     txs
 
+    ; ハイスコアの初期値（再スタートしても消えない変数を初期化）
+    lda #$03
+    sta v_hi10
+    lda #$07
+    sta v_hi100
+    lda #$05
+    sta v_hi1000
+    lda #$00
+    sta v_hi10000
+    sta v_hi100000
+    sta v_hi1000000
+    lda #$3d
+    sta v_hi
+    lda #$02
+    sta v_hi + 1
+    lda #$00
+    sta v_hi + 2
+
 .include "stg-00setup.asm"
 .include "stg-01mainloop.asm"
 .include "stg-movePlayer.asm"
@@ -94,6 +112,15 @@ v_sc1000:   .byte   $00     ; スコア(1000の位)
 v_sc10000:  .byte   $00     ; スコア(10000の位)
 v_sc100000: .byte   $00     ; スコア(100000の位)
 v_sc1000000:.byte   $00     ; スコア(1000000の位)
+v_sc:       .byte   $00, $00, $00 ; スコア数値
+v_hi10:     .byte   $00     ; ハイスコア(10の位)
+v_hi100:    .byte   $00     ; ハイスコア(100の位)
+v_hi1000:   .byte   $00     ; ハイスコア(1000の位)
+v_hi10000:  .byte   $00     ; ハイスコア(10000の位)
+v_hi100000: .byte   $00     ; ハイスコア(100000の位)
+v_hi1000000:.byte   $00     ; ハイスコア(1000000の位)
+v_hi:       .byte   $00, $00, $00 ; ハイスコア数値
+v_hi_update:.byte   $00     ; ハイスコア更新フラグ
 v_star_pos: .byte   $00
 ; 自機ショット構造体（16bytes）
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
