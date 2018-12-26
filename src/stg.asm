@@ -133,6 +133,10 @@ v_star0:    .byte   $00, $00, $00, $00
 v_star1:    .byte   $00, $00, $00, $00
 v_star2:    .byte   $00, $00, $00, $00
 v_star3:    .byte   $00, $00, $00, $00
+v_star4:    .byte   $00, $00, $00, $00
+v_star5:    .byte   $00, $00, $00, $00
+v_star6:    .byte   $00, $00, $00, $00
+v_star7:    .byte   $00, $00, $00, $00
 
 .org $0300  ;       Y       TILE    ATTR    X         No: description
 sp_player1: .byte   $00,    $00,    $00,    $00     ; 01: player (left-top)
