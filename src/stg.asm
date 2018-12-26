@@ -81,6 +81,7 @@ v_sc1000:   .byte   $00     ; スコア(1000の位)
 v_sc10000:  .byte   $00     ; スコア(10000の位)
 v_sc100000: .byte   $00     ; スコア(100000の位)
 v_sc1000000:.byte   $00     ; スコア(1000000の位)
+; 自機ショット構造体（16bytes）
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
 v_shot0_x:  .byte   $00     ; ショットのX座標
 v_shot0_y:  .byte   $00     ; ショットのY座標
@@ -88,6 +89,7 @@ v_shot0_i:  .byte   $00     ; 未使用 (バウンダリ)
 v_shot1:    .byte   $00, $00, $00, $00
 v_shot2:    .byte   $00, $00, $00, $00
 v_shot3:    .byte   $00, $00, $00, $00
+; 敵ショット構造体（32bytes）
 v_eshot0_f: .byte   $00     ; 敵ショットの生存フラグ
 v_eshot0_x: .byte   $00     ; 敵ショットのX座標
 v_eshot0_y: .byte   $00     ; 敵ショットのY座標
@@ -99,6 +101,7 @@ v_eshot4:   .byte   $00, $00, $00, $00
 v_eshot5:   .byte   $00, $00, $00, $00
 v_eshot6:   .byte   $00, $00, $00, $00
 v_eshot7:   .byte   $00, $00, $00, $00
+; 敵構造体（32bytes）
 v_enemy0_f: .byte   $00     ; 敵の生存フラグ（兼種別判定フラグ）
 v_enemy0_x: .byte   $00     ; 敵のX座標
 v_enemy0_y: .byte   $00     ; 敵のY座標
