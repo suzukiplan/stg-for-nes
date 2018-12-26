@@ -200,7 +200,7 @@ loop:
     adc #$04 ; a = a + 4
     tax      ; x = a
     cmp #$28 ;
-    bcc loop ; branch if x < 40 ($28 = 4 * 10)
+    bcc loop ; branch if a < 40 ($28 = 4 * 10)
 ```
 
 上記2つのコードの違いは `and -> cmp` + `bne -> bcc` しかない。
