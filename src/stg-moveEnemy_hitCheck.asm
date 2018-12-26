@@ -24,6 +24,32 @@ sub_moveEnemy_hitCheck_loop:
     adc #$10
     cmp v_shot0_y, y
     bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY + 4 is not hit
+
+    ; play SE1 (ノイズを使う)
+    ;     --cevvvv (c=再生時間カウンタ, e=effect, v=volume)
+    lda #%00010100
+    sta $400C
+    ;     r---ssss (r=乱数種別, s=サンプリングレート)
+    lda #%00001001
+    sta $400E
+    ;     ttttt--- (t=再生時間)
+    lda #%01111000
+    sta $400F
+
+    ; play SE2 (矩形波2を使う)
+    ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
+    lda #%11110100
+    sta $4004
+    ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
+    lda #%11110010
+    sta $4005
+    ;     kkkkkkkk (k=音程周波数の下位8bit)
+    lda #%01101000
+    sta $4006
+    ;     tttttkkk (t=再生時間, k=音程周波数の上位3bit)
+    lda #%10001010
+    sta $4007
+
     ; 現在の敵座標位置から爆発を描画
     lda #$01
     sta v_bomb_f

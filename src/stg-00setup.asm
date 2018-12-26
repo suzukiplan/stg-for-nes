@@ -284,3 +284,8 @@ setup_eshot_vars:
     inx
     dey
     bne setup_eshot_vars
+
+; setup APU
+    lda #%00001111
+    sta $4015
+    sta v_eshot_se

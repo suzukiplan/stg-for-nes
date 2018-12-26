@@ -37,6 +37,20 @@ sub_newEnemyShot:
     ; ATTRを設定
     lda #%00100010
     sta sp_eshot0 + 2, y
+
+    ; play SE (三角波を使う)
+    ;     cttttttt (c=再生時間カウンタ, t=再生時間)
+    lda #%00000011
+    sta $4008
+    ;     ssssssss (s=サンプリングレート下位8bit)
+    lda v_eshot_se
+    adc #%10011001
+    sta v_eshot_se
+    sta $400A
+    ;     tttttsss (t=再生時間, s=サンプリングレート上位3bit)
+    lda #%00000001
+    sta $400B
+
     ; 7フレームの間、新規ショットを発射禁止にする
     lda #$07
     sta v_eshot_ng

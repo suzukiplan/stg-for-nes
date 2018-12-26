@@ -84,6 +84,35 @@ moveloop_inputCheck:
     jmp mainloop_gameOver_end
 
 mainloop_gameOver:
+    cmp #$01
+    bne mainloop_gameOver_skipSE
+
+    ; play SE1 (ノイズを使う)
+    ;     --cevvvv (c=再生時間カウンタ, e=effect, v=volume)
+    lda #%00010100
+    sta $400C
+    ;     r---ssss (r=乱数種別, s=サンプリングレート)
+    lda #%00001101
+    sta $400E
+    ;     ttttt--- (t=再生時間)
+    lda #%11111000
+    sta $400F
+
+    ; play SE2 (矩形波2を使う)
+    ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
+    lda #%11110100
+    sta $4004
+    ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
+    lda #%11110011
+    sta $4005
+    ;     kkkkkkkk (k=音程周波数の下位8bit)
+    lda #%01101000
+    sta $4006
+    ;     tttttkkk (t=再生時間, k=音程周波数の上位3bit)
+    lda #%11111001
+    sta $4007
+
+mainloop_gameOver_skipSE:
     lda $4016   ; A
     lda $4016   ; B 
     lda $4016   ; SELECT

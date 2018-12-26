@@ -51,6 +51,20 @@ sub_moveEnemy_typeM_checkY:
     cmp v_playerY
     bcc sub_moveEnemy_typeM_noHit ; enemyY+16(a) < playerY is not hit
 
+    ; play SE (矩形波2を使う)
+    ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
+    lda #%10010111
+    sta $4004
+    ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
+    lda #%11111010
+    sta $4005
+    ;     kkkkkkkk (k=音程周波数の下位8bit)
+    lda #%01101000
+    sta $4006
+    ;     tttttkkk (t=再生時間, k=音程周波数の上位3bit)
+    lda #%10001000
+    sta $4007
+
     ; 衝突したので消す
     lda v_sc
     clc

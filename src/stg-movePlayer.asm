@@ -17,8 +17,21 @@ sub_movePlayer_addNewShot:
     lda #$20
     sta v_shot_ng
 
-    ldx v_shot_idx
+    ; play SE (矩形波1を使う)
+    ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
+    lda #%00110100
+    sta $4000
+    ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
+    lda #%11010010
+    sta $4001
+    ;     kkkkkkkk (k=音程周波数の下位8bit)
+    lda #%01101000
+    sta $4002
+    ;     tttttkkk (t=再生時間, k=音程周波数の上位3bit)
+    lda #%10001001
+    sta $4003
 
+    ldx v_shot_idx
     ; suppress if shot exist yet
     lda v_shot0_f, x
     bne sub_movePlayer_endFireShot
