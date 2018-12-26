@@ -388,7 +388,7 @@ mainloop_drawStar_next:
     ; increment index
     txa
     adc #$04
-    and #$1f
+    and #$0f
     tax
     bne mainloop_drawStar
     lda #$00

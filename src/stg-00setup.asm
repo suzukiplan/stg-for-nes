@@ -276,7 +276,7 @@ setup_stars:
     txa
     clc
     adc #$04
-    and #$1f
+    and #$0f
     tax
     bne setup_stars
 
