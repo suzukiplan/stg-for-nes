@@ -4,6 +4,25 @@
 ; * a,yレジスタ: サブルーチン内で自由に使える
 ;----------------------------------------------------------
 sub_changeEnemyToMedal:
+    lda v_enemy0_y, x
+    cmp #$14
+    bcs sub_changeEnemyToMedal_enable
+    lda #$00
+    sta v_enemy0_f, x
+    sta sp_enemy0lt, x
+    sta sp_enemy0lt + 1, x
+    sta sp_enemy0lt + 3, x
+    sta sp_enemy0rt, x
+    sta sp_enemy0rt + 1, x
+    sta sp_enemy0rt + 3, x
+    sta sp_enemy0lb, x
+    sta sp_enemy0lb + 1, x
+    sta sp_enemy0lb + 3, x
+    sta sp_enemy0rb, x
+    sta sp_enemy0rb + 1, x
+    sta sp_enemy0rb + 3, x
+    rts
+sub_changeEnemyToMedal_enable:
     lda #$80
     sta v_enemy0_f, x
     lda #$fe

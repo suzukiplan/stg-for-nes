@@ -204,8 +204,7 @@ mainloop_moveEnemy_toMedal: ; 敵をメダルに変化させる
 mainloop_moveEnemy_typeM:
     jsr sub_moveEnemy_typeM
     and #$01
-    beq mainloop_moveEnemy_erase
-    jmp mainloop_moveEnemy_next
+    bne mainloop_moveEnemy_next
 mainloop_moveEnemy_erase:
     lda #$00
     sta v_enemy0_f, x
