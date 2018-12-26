@@ -249,6 +249,15 @@ mainloop_moveEShot:
     ; 自機との当たり判定
     lda v_gameOver
     bne mainloop_moveEShot_next
+    ; Y座標のチェック
+    lda v_eshot0_y, x
+    adc #$EF ; carry が 1 なので #$F0
+    cmp v_playerY
+    bcs mainloop_moveEShot_next ; eshotY(a) >= playerY+16 is not hit
+    adc #$18
+    cmp v_playerY
+    bcc mainloop_moveEShot_next ; enemyY+8(a) < playerY is not hit
+    ; X座標のチェック
     lda v_eshot0_x, x
     clc
     adc #$f0 ; 本当はplayerXを+16したいが難しいのでeshotXを-16する
@@ -257,13 +266,6 @@ mainloop_moveEShot:
     adc #$18
     cmp v_playerX
     bcc mainloop_moveEShot_next ; eshotX+8(a) < playerX is not hit
-    lda v_eshot0_y, x
-    adc #$EF ; carry が 1 なので #$F0
-    cmp v_playerY
-    bcs mainloop_moveEShot_next ; eshotY(a) >= playerY+16 is not hit
-    adc #$18
-    cmp v_playerY
-    bcc mainloop_moveEShot_next ; enemyY+8(a) < playerY is not hit
     lda #$01
     sta v_gameOver
 

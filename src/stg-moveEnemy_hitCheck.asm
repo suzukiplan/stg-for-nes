@@ -9,6 +9,13 @@ sub_moveEnemy_hitCheck:
 sub_moveEnemy_hitCheck_loop:
     lda v_shot0_f, y
     beq sub_moveEnemy_hitCheck_next
+    lda v_enemy0_y, x
+    adc #$F3 ; carry が 1 なので #$F4 (本当は-8すべきだが-12にすることでshotY+4で判定)
+    cmp v_shot0_y, y
+    bcs sub_moveEnemy_hitCheck_next ; enemyY-8(a) >= shotY + 4 is not hit
+    adc #$10
+    cmp v_shot0_y, y
+    bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY + 4 is not hit
     lda v_enemy0_x, x
     clc
     adc #$fc ; 本当はshotXを+4したいが難しいので敵Xを-4する
@@ -17,13 +24,6 @@ sub_moveEnemy_hitCheck_loop:
     adc #$10
     cmp v_shot0_x, y
     bcc sub_moveEnemy_hitCheck_next ; enemyX+16(a) < shotX + 4 is not hit
-    lda v_enemy0_y, x
-    adc #$F3 ; carry が 1 なので #$F4 (本当は-8すべきだが-12にすることでshotY+4で判定)
-    cmp v_shot0_y, y
-    bcs sub_moveEnemy_hitCheck_next ; enemyY-8(a) >= shotY + 4 is not hit
-    adc #$10
-    cmp v_shot0_y, y
-    bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY + 4 is not hit
 
     ; play SE1 (ノイズを使う)
     ;     --cevvvv (c=再生時間カウンタ, e=effect, v=volume)
