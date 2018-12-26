@@ -209,7 +209,7 @@ clear_sprite_area:
     sta v_shot_ng
     sta v_eshot_idx
     sta v_eshot_ng
-    sta v_sc
+    sta v_sc_plus
     sta v_sc10
     sta v_sc100
     sta v_sc1000

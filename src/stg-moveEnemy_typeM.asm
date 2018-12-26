@@ -68,10 +68,10 @@ sub_moveEnemy_typeM_hit:
     sta $4007
 
     ; 衝突したので消す
-    lda v_sc
+    lda v_sc_plus
     clc
     adc #$0a
-    sta v_sc
+    sta v_sc_plus
     lda #$00
     rts
 

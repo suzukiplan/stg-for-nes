@@ -441,11 +441,11 @@ mainloop_drawGameOver2:
 mainloop_drawScore:
     ; スコア更新 (描画を伴うのでvBlank中でなければならない)
     ; 負荷軽減のため1フレームにつき最大10加算とする
-    ldx v_sc
+    ldx v_sc_plus
     beq mainloop_drawScore_end
     jsr sub_addScore10
     dex
-    stx v_sc
+    stx v_sc_plus
     lda #$00
     sta $2005
     sta $2005

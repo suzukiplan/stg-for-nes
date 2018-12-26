@@ -87,7 +87,7 @@ v_bomb_y:   .byte   $00     ; 爆発のY座標
 v_eshot_idx:.byte   $00     ; 敵ショットのindex
 v_eshot_ng: .byte   $00     ; 敵ショットの発射禁止フラグ (0の時のみ発射許可)
 v_eshot_se: .byte   $00     ; 的ショットの効果音下位8bit (発射の都度変化)
-v_sc:       .byte   $00     ; 1フレームあたりのスコア加算回数
+v_sc_plus:  .byte   $00     ; 1フレームあたりのスコア加算回数
 v_sc10:     .byte   $00     ; スコア(10の位)
 v_sc100:    .byte   $00     ; スコア(100の位)
 v_sc1000:   .byte   $00     ; スコア(1000の位)

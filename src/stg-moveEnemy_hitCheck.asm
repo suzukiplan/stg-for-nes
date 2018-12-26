@@ -60,10 +60,10 @@ sub_moveEnemy_hitCheck_loop:
     adc #$f8
     sta v_bomb_y
     ; スコアを+30点加算
-    lda v_sc
+    lda v_sc_plus
     clc
     adc #$03
-    sta v_sc
+    sta v_sc_plus
     ; 自機ショットを消滅させつつ, a = 0 でリターン
     lda #$00
     sta v_shot0_f, y
