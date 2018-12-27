@@ -29,9 +29,6 @@ sub_moveEnemy_type1_alive:
     sta v_enemy0_y, x
     sta sp_enemy0lb, x
     sta sp_enemy0rb, x
-    adc #$f8
-    sta sp_enemy0lt, x
-    sta sp_enemy0rt, x
     ; フラグにより動作を変える
     lda v_enemy0_i, x
     and #$ff
@@ -42,16 +39,14 @@ sub_moveEnemy_type1_alive:
 sub_moveEnemy_type1_left:
     ldy v_enemy0_x, x
     dey
-    bcc sub_moveEnemy_type1_left_over ; 負数になったので消す
+    bcs sub_moveEnemy_type1_left_over ; 負数になったので消す
     tya
     sta v_enemy0_x, x
-    sta sp_enemy0lt + 3, x
     sta sp_enemy0lb + 3, x
     clc
     adc #$08
-    sta sp_enemy0rt + 3, x
     sta sp_enemy0rb + 3, x
-    jmp sub_moveEnemy_hitCheck
+    jmp sub_moveEnemy_type1_hitCheck_before
 sub_moveEnemy_type1_left_over:
     lda #$00
     rts
@@ -81,15 +76,24 @@ sub_moveEnemy_type1_right:
     bcs sub_moveEnemy_type1_right_over ; 176以上なので消す
     tya
     sta v_enemy0_x, x
-    sta sp_enemy0lt + 3, x
     sta sp_enemy0lb + 3, x
     adc #$08
-    sta sp_enemy0rt + 3, x
     sta sp_enemy0rb + 3, x
-    jmp sub_moveEnemy_type1_hitCheck
+    jmp sub_moveEnemy_type1_hitCheck_before
 sub_moveEnemy_type1_right_over:
     lda #$00
     rts
+
+sub_moveEnemy_type1_hitCheck_before:
+    ; 左右移動時はパタパタする
+    lda v_counter
+    and #$04
+    ror
+    clc
+    adc #$06
+    sta sp_enemy0lb + 1, x
+    adc #$01
+    sta sp_enemy0rb + 1, x
 
 sub_moveEnemy_type1_hitCheck:
     ; 自機との当たり判定
@@ -98,12 +102,12 @@ sub_moveEnemy_type1_hitCheck:
     ; Y座標の衝突チェック
     lda v_enemy0_y, x
     clc
-    adc #$E8 ; 敵のYは+8から始まるので-8しつつplayerY+16としたいので更に-16
+    adc #$F0 ; playerY+16としたいが難しいので敵を-16にしておく
     cmp v_playerY
-    bcs sub_moveEnemy_type1_noHit ; enemyY-8(a) >= playerY+16 is not hit
-    adc #$28
+    bcs sub_moveEnemy_type1_noHit ; enemyY(a) >= playerY+16 is not hit
+    adc #$18
     cmp v_playerY
-    bcc sub_moveEnemy_type1_noHit ; enemyY+16(a) < playerY is not hit
+    bcc sub_moveEnemy_type1_noHit ; enemyY+8(a) < playerY is not hit
     ; X座標の衝突チェック
     lda v_enemy0_x, x
     cmp #$10

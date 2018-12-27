@@ -27,6 +27,15 @@ sub_changeEnemyToMedal_enable:
     sta v_enemy0_f, x
     lda #$fe
     sta v_enemy0_i, x
+    lda v_enemy0_x, x
+    sta sp_enemy0lt + 3, x
+    lda sp_enemy0rb + 3, x
+    sta sp_enemy0rt + 3, x
+    lda v_enemy0_y, x
+    clc
+    sbc #$08
+    sta sp_enemy0lt, x
+    sta sp_enemy0rt, x
     lda #$20
     sta sp_enemy0lt + 1, x
     lda #$24

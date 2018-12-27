@@ -10,20 +10,20 @@ sub_moveEnemy_hitCheck_loop:
     lda v_shot0_f, y
     beq sub_moveEnemy_hitCheck_next
     lda v_enemy0_y, x
-    adc #$F3 ; carry が 1 なので #$F4 (本当は-8すべきだが-12にすることでshotY+4で判定)
-    cmp v_shot0_y, y
-    bcs sub_moveEnemy_hitCheck_next ; enemyY-8(a) >= shotY + 4 is not hit
-    adc #$10
-    cmp v_shot0_y, y
-    bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY + 4 is not hit
-    lda v_enemy0_x, x
     clc
-    adc #$fc ; 本当はshotXを+4したいが難しいので敵Xを-4する
-    cmp v_shot0_x, y
-    bcs sub_moveEnemy_hitCheck_next ; enemyX(a) >= shotX + 4 is not hit
+    adc #$F8
+    cmp v_shot0_y, y
+    bcs sub_moveEnemy_hitCheck_next ; enemyY(a) >= shotY + 8 is not hit
     adc #$10
+    cmp v_shot0_y, y
+    bcc sub_moveEnemy_hitCheck_next ; enemyY+8(a) < shotY is not hit
+    lda v_enemy0_x, x
+    adc #$f7 ; 本当はshotXを+8したいが難しいので敵Xを-8する
     cmp v_shot0_x, y
-    bcc sub_moveEnemy_hitCheck_next ; enemyX+16(a) < shotX + 4 is not hit
+    bcs sub_moveEnemy_hitCheck_next ; enemyX(a) >= shotX + 8 is not hit
+    adc #$18
+    cmp v_shot0_x, y
+    bcc sub_moveEnemy_hitCheck_next ; enemyX+16(a) < shotX is not hit
     jmp sub_moveEnemy_hitCheck_destruct
 sub_moveEnemy_hitCheck_next:
     tya
