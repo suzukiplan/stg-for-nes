@@ -235,6 +235,13 @@ mainloop_moveEShot:
     ; store Y
     sta v_eshot0_y, x
     sta sp_eshot0, x
+    ; animate
+    lda v_counter
+    and #$04
+    ror
+    ror
+    adc #$0a
+    sta sp_eshot0 + 1, x
 
     ; 自機との当たり判定
     lda v_gameOver

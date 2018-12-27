@@ -38,7 +38,7 @@ sub_newEnemyShot:
     lda #%00100010
     sta sp_eshot0 + 2, y
 
-    ; play SE (三角波を使う)
+    ; play SE1 (三角波を使う)
     ;     cttttttt (c=再生時間カウンタ, t=再生時間)
     lda #%00000011
     sta $4008
@@ -50,6 +50,20 @@ sub_newEnemyShot:
     ;     tttttsss (t=再生時間, s=サンプリングレート上位3bit)
     lda #%00000001
     sta $400B
+
+    ; play SE2 (矩形波2を使う)
+    ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
+    lda #%11110010
+    sta $4004
+    ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
+    lda #%11010011
+    sta $4005
+    ;     kkkkkkkk (k=音程周波数の下位8bit)
+    lda #%01101000
+    sta $4006
+    ;     tttttkkk (t=再生時間, k=音程周波数の上位3bit)
+    lda #%10001011
+    sta $4007
 
     ; 7フレームの間、新規ショットを発射禁止にする
     lda #$07
