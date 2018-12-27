@@ -11,6 +11,9 @@ sub_moveEnemy_typeM:
     adc v_enemy0_i, x
     cmp #$f6
     bcc sub_moveEnemy_typeM_alive ; 加算後のYが$f6未満なら生存中としておく
+    ldy v_md_plus
+    dey
+    sty v_md_plus
     lda #$00
     rts
 sub_moveEnemy_typeM_alive:
@@ -71,7 +74,11 @@ sub_moveEnemy_typeM_hit:
     lda v_sc_plus
     clc
     adc #$0a
+    adc v_md_cnt
     sta v_sc_plus
+    ldy v_md_plus
+    iny
+    sty v_md_plus
     lda #$00
     rts
 

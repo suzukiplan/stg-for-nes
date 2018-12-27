@@ -24,7 +24,19 @@ sub_moveEnemy_hitCheck_loop:
     adc #$10
     cmp v_shot0_x, y
     bcc sub_moveEnemy_hitCheck_next ; enemyX+16(a) < shotX + 4 is not hit
+    jmp sub_moveEnemy_hitCheck_destruct
+sub_moveEnemy_hitCheck_next:
+    tya
+    clc
+    adc #$04
+    tay
+    and #$0f
+    bne sub_moveEnemy_hitCheck_loop
+    ; TODO: 敵の爆破アニメーションの開始指示をするならココがベスト
+    lda #$01 ; a = 1 でリターン（ヒットしなかった）
+    rts
 
+sub_moveEnemy_hitCheck_destruct:
     ; play SE1 (ノイズを使う)
     ;     --cevvvv (c=再生時間カウンタ, e=effect, v=volume)
     lda #%00010100
@@ -59,10 +71,11 @@ sub_moveEnemy_hitCheck_loop:
     clc
     adc #$f8
     sta v_bomb_y
-    ; スコアを+30点加算
+    ; スコアを加算 (10 + メダル所持数 * 10点)
     lda v_sc_plus
     clc
-    adc #$03
+    adc #$01
+    adc v_md_cnt
     sta v_sc_plus
     ; 自機ショットを消滅させつつ, a = 0 でリターン
     lda #$00
@@ -70,14 +83,4 @@ sub_moveEnemy_hitCheck_loop:
     sta sp_shot0, y
     sta sp_shot0 + 1, y
     sta sp_shot0 + 3, y
-    rts
-sub_moveEnemy_hitCheck_next:
-    tya
-    clc
-    adc #$04
-    tay
-    and #$0f
-    bne sub_moveEnemy_hitCheck_loop
-    ; TODO: 敵の爆破アニメーションの開始指示をするならココがベスト
-    lda #$01 ; a = 1 でリターン（ヒットしなかった）
     rts

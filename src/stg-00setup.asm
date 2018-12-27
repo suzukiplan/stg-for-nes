@@ -204,6 +204,7 @@ clear_sprite_area:
 ; setup player variables
     lda #$00
     sta v_gameOver
+    sta v_gameOverD
     lda #$50
     sta v_playerX
     tax
@@ -276,6 +277,8 @@ clear_sprite_area:
     sta v_sc100000
     sta v_sc1000000
     sta v_hi_update
+    sta v_md_cnt
+    sta v_md_plus
     ldx #$00
     ldy #$04
     lda #$00

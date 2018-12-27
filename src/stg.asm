@@ -91,37 +91,40 @@ star_low:; 星を表示する位置の下位8bit
     .byte   $47, $23, $b5, $91, $68, $23, $41, $82
 
 .org $0000
-v_gameOver: .byte   $00     ; ゲームオーバーカウンタ
-v_playerX:  .byte   $00     ; 自機のX座標
-v_playerY:  .byte   $00     ; 自機のY座標
-v_shot_idx: .byte   $00     ; ショットのindex
-v_shot_ng:  .byte   $00     ; ショットの発射禁止フラグ (0の時のみ発射許可)
-v_counter:  .byte   $00     ; tick counter
-v_enemy_idx:.byte   $00     ; 敵のindex
-v_enemy_xi: .byte   $00     ; 敵の出現位置のindex
-v_bomb_f:   .byte   $00     ; 爆発フラグ (#$00〜#$0F)
-v_bomb_x:   .byte   $00     ; 爆発のX座標
-v_bomb_y:   .byte   $00     ; 爆発のY座標
-v_eshot_idx:.byte   $00     ; 敵ショットのindex
-v_eshot_ng: .byte   $00     ; 敵ショットの発射禁止フラグ (0の時のみ発射許可)
-v_eshot_se: .byte   $00     ; 的ショットの効果音下位8bit (発射の都度変化)
-v_sc_plus:  .byte   $00     ; 1フレームあたりのスコア加算回数
-v_sc10:     .byte   $00     ; スコア(10の位)
-v_sc100:    .byte   $00     ; スコア(100の位)
-v_sc1000:   .byte   $00     ; スコア(1000の位)
-v_sc10000:  .byte   $00     ; スコア(10000の位)
-v_sc100000: .byte   $00     ; スコア(100000の位)
-v_sc1000000:.byte   $00     ; スコア(1000000の位)
-v_sc:       .byte   $00, $00, $00 ; スコア数値
-v_hi10:     .byte   $00     ; ハイスコア(10の位)
-v_hi100:    .byte   $00     ; ハイスコア(100の位)
-v_hi1000:   .byte   $00     ; ハイスコア(1000の位)
-v_hi10000:  .byte   $00     ; ハイスコア(10000の位)
-v_hi100000: .byte   $00     ; ハイスコア(100000の位)
-v_hi1000000:.byte   $00     ; ハイスコア(1000000の位)
-v_hi:       .byte   $00, $00, $00 ; ハイスコア数値
-v_hi_update:.byte   $00     ; ハイスコア更新フラグ
-v_star_pos: .byte   $00
+v_gameOver: .byte   $00     ; 0: ゲームオーバーカウンタ
+v_gameOverD:.byte   $00     ; 1: ゲームオーバー描画済みフラグ
+v_playerX:  .byte   $00     ; 2: 自機のX座標
+v_playerY:  .byte   $00     ; 3: 自機のY座標
+v_shot_idx: .byte   $00     ; 4: ショットのindex
+v_shot_ng:  .byte   $00     ; 5: ショットの発射禁止フラグ (0の時のみ発射許可)
+v_counter:  .byte   $00     ; 6: tick counter
+v_enemy_idx:.byte   $00     ; 7: 敵のindex
+v_enemy_xi: .byte   $00     ; 8: 敵の出現位置のindex
+v_bomb_f:   .byte   $00     ; 9: 爆発フラグ (#$00〜#$0F)
+v_bomb_x:   .byte   $00     ; 10: 爆発のX座標
+v_bomb_y:   .byte   $00     ; 11: 爆発のY座標
+v_eshot_idx:.byte   $00     ; 12: 敵ショットのindex
+v_eshot_ng: .byte   $00     ; 13: 敵ショットの発射禁止フラグ (0の時のみ発射許可)
+v_eshot_se: .byte   $00     ; 14: 敵ショットの効果音下位8bit (発射の都度変化)
+v_sc_plus:  .byte   $00     ; 15: 1フレームあたりのスコア加算回数
+v_sc10:     .byte   $00     ; 16: スコア(10の位)
+v_sc100:    .byte   $00     ; 17: スコア(100の位)
+v_sc1000:   .byte   $00     ; 18: スコア(1000の位)
+v_sc10000:  .byte   $00     ; 19: スコア(10000の位)
+v_sc100000: .byte   $00     ; 20: スコア(100000の位)
+v_sc1000000:.byte   $00     ; 21: スコア(1000000の位)
+v_sc:       .byte   $00, $00, $00 ; 22-24: スコア数値
+v_hi10:     .byte   $00     ; 25: ハイスコア(10の位)
+v_hi100:    .byte   $00     ; 26: ハイスコア(100の位)
+v_hi1000:   .byte   $00     ; 27: ハイスコア(1000の位)
+v_hi10000:  .byte   $00     ; 28: ハイスコア(10000の位)
+v_hi100000: .byte   $00     ; 29: ハイスコア(100000の位)
+v_hi1000000:.byte   $00     ; 30: ハイスコア(1000000の位)
+v_hi:       .byte   $00, $00, $00 ; 31-33: ハイスコア数値
+v_hi_update:.byte   $00     ; 34: ハイスコア更新フラグ
+v_star_pos: .byte   $00     ; 35: 星の乱数位置
+v_md_cnt:   .byte   $00     ; 36: 所持メダル数
+v_md_plus:  .byte   $00     ; 37: 1フレームでのメダル増加/減少数
 ; 自機ショット構造体（16bytes）
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
 v_shot0_x:  .byte   $00     ; ショットのX座標

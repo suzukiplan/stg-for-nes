@@ -359,6 +359,7 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     ; 星を4フレームにつき1回動かす
     lda v_counter
     and #$03
+    cmp #$02
     bne mainloop_drawStar_skip
     ldx #$00
 mainloop_drawStar:
@@ -396,12 +397,63 @@ mainloop_drawStar_next:
     lda #$00
     sta $2005
     sta $2005
+    jmp mainloop ; 性能確保のため今回フレームではその他の描画更新を省略
 mainloop_drawStar_skip:
 
+    ; メダルの加算/減算
+    ldx #$00
+    lda v_md_cnt
+    clc
+    adc v_md_plus
+    stx v_md_plus
+    cmp #$80
+    bcs mainloop_medal_plus_store ; 負数なので0にする
+    ldx #$07
+    cmp #$08
+    bcs mainloop_medal_plus_store ; 8以上なので7にする
+    tax
+mainloop_medal_plus_store:
+    cpx v_md_cnt
+    beq mainloop_drawGameOver ; メダル数に変化無し
+    stx v_md_cnt
+
+    ; 所持メダル数を表示
+mainloop_drawMedals:
+    lda #$21
+    sta $2006
+    lda #$b7
+    sta $2006
+    ldy #$08
+    lda v_md_cnt
+    beq mainloop_drawMedals_spaces
+    tax
+    lda #$09
+mainloop_drawMedals_stars:
+    sta $2007
+    dey
+    dex
+    bne mainloop_drawMedals_stars
+mainloop_drawMedals_spaces:
+    lda #$08
+mainloop_drawMedals_spaces_loop:
+    sta $2007
+    dey
+    bne mainloop_drawMedals_spaces_loop
+mainloop_drawMedals_end:
+    lda #$00
+    sta $2005
+    sta $2005
+    jmp mainloop ; 性能確保のため今回フレームではその他の描画更新を省略
+
     ; ゲームオーバー表示 (５フレーム目にのみ描画)
+mainloop_drawGameOver:
+    lda v_gameOverD
+    bne mainloop_drawScore
     lda v_gameOver
     cmp #$05
     bne mainloop_drawScore
+    lda #$ff
+    sta v_gameOverD
 
     ldy #$09
     ldx #$00
