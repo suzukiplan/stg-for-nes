@@ -451,7 +451,7 @@ mainloop_drawGameOver:
     bne mainloop_drawScore
     lda v_gameOver
     cmp #$05
-    bne mainloop_drawScore
+    bcc mainloop_drawScore
     lda #$ff
     sta v_gameOverD
 
