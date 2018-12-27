@@ -445,13 +445,12 @@ mainloop_drawMedals_end:
     sta $2005
     jmp mainloop ; 性能確保のため今回フレームではその他の描画更新を省略
 
-    ; ゲームオーバー表示 (５フレーム目にのみ描画)
+    ; ゲームオーバー表示
 mainloop_drawGameOver:
     lda v_gameOverD
     bne mainloop_drawScore
     lda v_gameOver
-    cmp #$05
-    bcc mainloop_drawScore
+    beq mainloop_drawScore
     lda #$ff
     sta v_gameOverD
 
