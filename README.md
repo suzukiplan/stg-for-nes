@@ -1,4 +1,4 @@
-# Simple STG for NES
+# Cosmic Shooter
 
 NESのプログラミングを勉強するためシンプルなSTGを作ってみる。
 
