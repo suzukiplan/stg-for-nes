@@ -2,7 +2,9 @@
 
 NESのプログラミングを勉強するためシンプルなSTGを作ってみる。
 
-<img src="screenshot.png" width="320"/>
+|タイトル|ゲーム画面|
+|---|---|---|
+|!(screenshot1.png)|!(screenshot2.png)|
 
 ## How to play
 

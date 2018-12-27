@@ -4,20 +4,6 @@ restart:
     sta $2000
     sta $2001
 
-; make palette table
-    lda #$3f
-    sta $2006
-    lda #$00
-    sta $2006
-    ldx #$00
-    ldy #$20
-copy_pal:
-    lda palettes, x
-    sta $2007
-    inx
-    dey
-    bne copy_pal
-
 ; clear name table (fill name table: pattern 00)
     lda #$20
     sta $2006

@@ -1,6 +1,7 @@
 IMAGES = stg-sprite.chr stg-bg.chr
 SOURCES = \
 	src/stg.asm\
+	src/stg-00title.asm\
 	src/stg-01setup.asm\
 	src/stg-02mainloop.asm\
 	src/stg-movePlayer.asm\
