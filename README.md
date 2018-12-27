@@ -3,8 +3,8 @@
 NESのプログラミングを勉強するためシンプルなSTGを作ってみる。
 
 |タイトル|ゲーム画面|
-|---|---|---|
-|!(screenshot1.png)|!(screenshot2.png)|
+|:---:|:---:|:---:|
+|![title](screenshot1.png)|![game](screenshot2.png)|
 
 ## How to play
 
