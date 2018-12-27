@@ -1,8 +1,8 @@
 IMAGES = stg-sprite.chr stg-bg.chr
 SOURCES = \
 	src/stg.asm\
-	src/stg-00setup.asm\
-	src/stg-01mainloop.asm\
+	src/stg-01setup.asm\
+	src/stg-02mainloop.asm\
 	src/stg-movePlayer.asm\
 	src/stg-moveEnemy_type1.asm\
 	src/stg-moveEnemy_typeM.asm\
