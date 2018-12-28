@@ -15,57 +15,11 @@ mainloop:
     txa
     and #$0f
     bne moveloop_inputCheck
-
 mainloop_addNewEnemy:
     ldx v_enemy_idx
     lda v_enemy0_f, x
     bne moveloop_inputCheck ; まだ生きているので登場を抑止
-    lda #$01 ; TODO: 暫定的に同じ種類の敵だけ出現させている
-    sta v_enemy0_f, x
-    lda #$00
-    sta v_enemy0_i, x
-    ; X座標 (enemy_x_tableから持ってくる)
-    ldy v_enemy_xi
-    iny
-    tya
-    and #$0f
-    sta v_enemy_xi
-    tay
-    lda enemy_x_table, y
-    sta v_enemy0_x, x
-    ; Y座標は0だがこれは下半分のオブジェクトのY座標（上半分は-8）
-    ; 登場時点では下半身のみ使う (16x8)
-    lda #$00
-    sta v_enemy0_y, x
-
-    ; Y of sprites
-    sta sp_enemy0lb, x
-    sta sp_enemy0rb, x
-
-    ; TILE of sprites
-    lda #$06
-    sta sp_enemy0lb + 1, x
-    lda #$07
-    sta sp_enemy0rb + 1, x
-
-    ; ATTR of sprites
-    lda #%00100011
-    sta sp_enemy0lb + 2, x
-    sta sp_enemy0rb + 2, x
-
-    ; X of sprites
-    lda v_enemy0_x, x
-    sta sp_enemy0lb + 3, x
-    clc
-    adc #$08
-    sta sp_enemy0rb + 3, x
-
-    ; increment index
-    txa
-    clc
-    adc #$04
-    and #$1f
-    sta v_enemy_idx
+    jsr sub_newEnemy
 
 moveloop_inputCheck:
     lda v_gameOver
@@ -179,10 +133,18 @@ mainloop_moveEnemy:
     ; check flag
     lda v_enemy0_f, x
     beq mainloop_moveEnemy_next
+    tay
     and #$80
     bne mainloop_moveEnemy_typeM ; 補数bitが立っている場合はメダル
+    tya
+    and #$01
+    beq mainloop_moveEnemy_type2
 mainloop_moveEnemy_type1:
     jsr sub_moveEnemy_type1
+    jmp mainloop_moveEnemy_after
+mainloop_moveEnemy_type2:
+    jsr sub_moveEnemy_type2
+mainloop_moveEnemy_after:
     and #$01
     beq mainloop_moveEnemy_erase
     jsr sub_moveEnemy_hitCheck

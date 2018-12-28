@@ -6,10 +6,12 @@ SOURCES = \
 	src/stg-02mainloop.asm\
 	src/stg-movePlayer.asm\
 	src/stg-moveEnemy_type1.asm\
+	src/stg-moveEnemy_type2.asm\
 	src/stg-moveEnemy_typeM.asm\
 	src/stg-changeEnemyToMedal.asm\
-	src/stg-newEnemyShot.asm\
 	src/stg-moveEnemy_hitCheck.asm\
+	src/stg-newEnemy.asm\
+	src/stg-newEnemyShot.asm\
 	src/stg-addScore.asm\
 
 all: stg.nes

@@ -40,10 +40,12 @@
 .include "stg-02mainloop.asm"
 .include "stg-movePlayer.asm"
 .include "stg-moveEnemy_type1.asm"
+.include "stg-moveEnemy_type2.asm"
 .include "stg-moveEnemy_typeM.asm"
 .include "stg-changeEnemyToMedal.asm"
-.include "stg-newEnemyShot.asm"
 .include "stg-moveEnemy_hitCheck.asm"
+.include "stg-newEnemy.asm"
+.include "stg-newEnemyShot.asm"
 .include "stg-addScore.asm"
 
 .endproc
