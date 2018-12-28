@@ -32,6 +32,16 @@ title_clear:
     dex
     bne title_clear
 
+; clear sprite memory
+    ldx #$00
+    lda #$00
+title_clear_sprite:
+    sta $0300, x
+    inx
+    bne title_clear_sprite
+    lda #$3
+    sta $4014
+
 ; initialize palette of name table
     lda #$23
     sta $2006
