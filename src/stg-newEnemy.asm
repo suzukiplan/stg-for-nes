@@ -4,6 +4,13 @@
 ; * a,yレジスタ: サブルーチン内で自由に使える
 ;----------------------------------------------------------
 sub_newEnemy:
+    ; 追加抑止期間かチェック
+    ldy v_skip_add
+    beq sub_newEnemy_notSkip
+    dey
+    sty v_skip_add
+    rts
+sub_newEnemy_notSkip:
     ; レベルアップ処理を行う
     lda v_level
     cmp #$07

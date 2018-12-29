@@ -75,6 +75,9 @@ string_top:
 string_pts:
     .byte   "     00"
 
+string_get_ready:
+    .byte   "GET READY"
+
 string_game_over:
     .byte   "GAME OVER"
 
@@ -149,6 +152,7 @@ v_md_cnt:   .byte   $00     ; 36: 所持メダル数
 v_md_plus:  .byte   $00     ; 37: 1フレームでのメダル増加/減少数
 v_level:    .byte   $00     ; 38: ゲーム難度
 v_level_cnt:.byte   $00     ; 39: レベル・カウンタ
+v_skip_add: .byte   $00     ; 40: 敵追加禁止フラグ
 ; 自機ショット構造体（16bytes）
 v_shot0_f:  .byte   $00     ; ショットの生存フラグ
 v_shot0_x:  .byte   $00     ; ショットのX座標

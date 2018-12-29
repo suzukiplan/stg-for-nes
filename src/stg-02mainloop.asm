@@ -342,6 +342,48 @@ mainloop_sprite_DMA:; WRAM $0300 ~ $03FF -> Sprite
     lda #$3
     sta $4014
 
+    lda v_skip_add
+    beq mainloop_skipGetReady
+    cmp #$01
+    beq mainloop_eraseGetReady
+    jmp mainloop_drawGetReady
+mainloop_eraseGetReady:
+    ldy #$09
+    ldx #$00
+    lda #$21
+    sta $2006
+    lda #$a7
+    sta $2006
+    lda #$00
+mainloop_eraseGetReadyLoop:
+    sta $2007
+    inx
+    dey
+    bne mainloop_eraseGetReadyLoop
+    lda #$00
+    sta $2005
+    sta $2005
+    jmp mainloop_skipGetReady
+mainloop_drawGetReady:
+    ldy #$09
+    ldx #$00
+    lda #$21
+    sta $2006
+    lda #$a7
+    sta $2006
+mainloop_drawGetReadyLoop:
+    lda string_get_ready, x
+    clc
+    adc #$80
+    sta $2007
+    inx
+    dey
+    bne mainloop_drawGetReadyLoop
+    lda #$00
+    sta $2005
+    sta $2005
+mainloop_skipGetReady:
+
     ; 星を4フレームにつき1回動かす
     lda v_counter
     and #$03
