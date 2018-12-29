@@ -57,6 +57,16 @@ mainloop_gameOver:
     sta $4007
 
 mainloop_gameOver_skipSE:
+    cmp #$10
+    bcc mainloop_gameOver_start ; 16フレームの間はリトライ禁止
+    cmp #$30
+    bcs mainloop_gameOver_retryCheck ; 48フレーム目以降ならリトライ許可
+    tax
+    inx
+    stx v_gameOver
+    jmp mainloop_gameOver_start
+
+mainloop_gameOver_retryCheck:
     lda $4016   ; A
     lda $4016   ; B 
     lda $4016   ; SELECT
