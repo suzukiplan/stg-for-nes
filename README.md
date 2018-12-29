@@ -275,6 +275,40 @@ Unityの場合、ゲームを作るために必要な機能をソフトウェア
 
 習作していく内に気づいたTIPSを書き溜めて公開しようと思っていたのですが、思いの外ご紹介できるネタが少なく、後半は主に精神論になってしまったかもしれません。やはり、ゲーム開発は文書を読んで学ぶものではなく、実際に作ってみることが一番かと思います。私は[コチラのサイト](http://hp.vector.co.jp/authors/VA042397/nes/index.html)でファミコン上でHELLO WORLDを表示するプログラムをダウンロードして、それを[cc65](https://cc65.github.io/)でアセンブルして動かすことから始め、表示位置を変えてみたり、色を変えてみたり、スクロールしてみたり、スプライトを表示してみたり、スプライトをジョイパッドで動かしてみたり、Aボタンでスプライトからショットを撃てるようにしてみたり...という風に改造を重ねた結果、このゲームが完成しました。ある程度の完成像は描いていましたが基本行き当たりばったりで作りました。もしもファミコンのゲームを作ってみたくてこのリポジトリに辿り着いた方が居れば、必要十分な環境は既に整っているので、まずはこのゲームのあまりにも鬼畜な難度を何とかするように改造してアセンブルして動かしてみるといったところから始めてみると良いかもしれません。
 
+最後にこの習作のソースコードの読む上で参考になりそうな情報を書いておきます。
+
+- [src/stg.asm](https://github.com/suzukiplan/stg-for-nes/blob/master/src/stg.asm)
+  - 最初はこのソースから作り始めたのですが、途中から長いソースを改修するのが大変になったので幾つかのファイルに分離して [include](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg.asm#L38-L49) して読み込むようにしました
+  - 最終的にこのソースは以下のブロックだけが残しました
+    - [iNESヘッダの定義](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg.asm#L5-L12)
+    - [スタートアップ処理](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg.asm#L14-L36)
+    - [定数定義](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg.asm#L53-L116)
+      - 8bitコンピュータのメモリは64KBありますが、ファミコンのメモリマップは大雑把に分けると、前半32KB($0000〜$7FFF)がRAMやI/Oポート、後半32KB($8000〜$FFFF)がコードという具合になっています。
+      - このゲームのコードサイズはマシン語に変換すると4KBほどありますが、その全部がプログラムという訳ではなく後半領域に文字列やパレットといった固定値のデータを突っ込んでいます。
+    - [変数ラベル](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg.asm#L118-L247)
+      - 64KBのメモリの内、プログラム内で書き換え可能な値（変数）をアドレスの何番地に割り当てるか定義しています
+      - C言語などのプログラムで言うところのグローバル変数みたいなものです（つまり、全部の変数をグローバル変数で管理しています）
+      - 変数として使える領域は決まって `$0000〜$00FF` (0ページ) と `$0200〜$07FF` (2〜7ページ) までの合計 $0700 バイト（1792バイト）です（MAPPER0の場合）
+      - このゲームの場合、0ページを一般変数用、3ページをスプライトDMA転送用に使っていて残り5ページは未使用だから、まだまだ戦えます
+      - `$0100〜$01FF` の範囲はスタック領域で、PHA/PLAなどでレジスタの値を一時的に保持するためのものです（C言語でプログラムを作る場合たった256バイトだと何もでないレベルかもしれませんが、オールマシン語で組む場合は256バイトも割と持て余すので、領域が足りなくなったら後半128バイトを潰すのもアリかも）
+    - [CHARSセグメントへのバイナリ読み込み](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg.asm#L255-L257)
+      - スプライトのパターンデータ（CHRファイル）をCHARSセグメントに読み込むようにしています
+      - RPGやアクションゲームのマップなどのタイルパターンもこの `.incbin` というプリプロセッサで読み込んであげれば良さそうです
+- [src/stg-00title.asm](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg-00title.asm)
+  - タイトル画面です（一番最後の方で作りました）
+- [src/stg-01setup.asm](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg-01setup.asm)
+  - タイトルのループを抜けた後に実行されるゲームの初期化処理です
+  - BGの描画や各種変数の初期化を行っています
+  - WRAMの領域は初期化しないと不定値が入っていてバグるのでWRAM領域を0クリアする処理を入れた方が良かったかも（実際、0クリア漏れで結構バグったような）
+- [src/stg-02mainloop.asm](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg-02mainloop.asm)
+  - ゲームのメインループ処理です
+  - このソースの頭から末尾までの処理が1秒間に60回実行されています
+  - 特に重要なのがvBlankの同期をしている[このロジック](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg-02mainloop.asm#L339-L341)です
+    - `lda $2002` でPPUの状態を読み込み negative flag がクリアされている間は只管 `lda $2002` を繰り返しています
+    - これによりこのループが抜けた時 = vBlankが発生中となります（その間にグラフィックの更新処理ができます）
+    - スプライトに関しては[3ページの内容をDMA転送するように指示している](https://github.com/suzukiplan/stg-for-nes/blob/ff0370ebe3d90056a3d43d4a8bc69e660c8d1e2e/src/stg-02mainloop.asm#L342-L343)だけで、これ以降のロジックは全てBGの更新処理です
+- その他ソース: サブルーチンです（全てメインループから追いかけることができます）
+
 ## License
 
 [GPLv3](LICENSE.txt)
