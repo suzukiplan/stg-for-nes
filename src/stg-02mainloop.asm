@@ -55,6 +55,7 @@ mainloop_gameOver:
     ;     tttttkkk (t=再生時間, k=音程周波数の上位3bit)
     lda #%11111001
     sta $4007
+    jmp mainloop_gameOver_start
 
 mainloop_gameOver_skipSE:
     cmp #$10
