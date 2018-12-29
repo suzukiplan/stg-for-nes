@@ -28,8 +28,8 @@ sub_newEnemyShot:
     lda v_enemy0_y, x
     sta v_eshot0_y, y
     sta sp_eshot0, y
-    ; 変数を初期化
-    lda #$00
+    ; 変数を現在のレベル値に初期化
+    lda v_level
     sta v_eshot0_i, y
     ; TILEを設定
     lda #$0a

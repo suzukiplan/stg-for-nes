@@ -74,6 +74,15 @@ sub_moveEnemy_type2_moveDown:
     ; 下に移動
     lda v_counter
     and #$07
+    beq sub_moveEnemy_type2_notStoreY ; 0なので移動省略
+    ; level 6未満の場合、下への移動速度を少し遅くする
+    ldy v_level
+    cpy #$06
+    bcs sub_moveEnemy_type2_moveDown_max ; 6以上なのでmaxで動かす
+    sbc #$02
+    bmi sub_moveEnemy_type2_notStoreY ; 負数なので移動省略
+    beq sub_moveEnemy_type2_notStoreY ; 0なので移動省略
+sub_moveEnemy_type2_moveDown_max:
     adc v_enemy0_y, x
     bcc sub_moveEnemy_type2_storeY
     ; 下限に達したので消す
@@ -88,6 +97,7 @@ sub_moveEnemy_type2_storeY:
     adc #$f8
     sta sp_enemy0lt, x
     sta sp_enemy0rt, x
+sub_moveEnemy_type2_notStoreY:
     ; アニメーション
     lda v_counter
     and #$04

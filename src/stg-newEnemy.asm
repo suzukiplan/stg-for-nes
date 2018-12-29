@@ -4,7 +4,26 @@
 ; * a,yレジスタ: サブルーチン内で自由に使える
 ;----------------------------------------------------------
 sub_newEnemy:
-    ; 一定の確率でハサミを登場させる
+    ; レベルアップ処理を行う
+    lda v_level
+    cmp #$07
+    beq sub_newEnemy_noLevelUp ; レベル上限なのでレベルアップ処理を省略
+    ldy v_level_cnt
+    iny
+    sty v_level_cnt
+    tya
+    and #$0f ; 16匹のnewEnemyを行う都度レベルを1上げる
+    bne sub_newEnemy_noLevelUp
+    ; Level Up!
+    ldy v_level
+    iny
+    sty v_level
+sub_newEnemy_noLevelUp:
+
+    ; レベル3以上の場合,　一定の確率でハサミを登場させる
+    lda v_level
+    cmp #$03
+    bcc sub_newEnemy_type1 ; 3未満なのでtype1のみ追加
     lda v_counter
     and #%00100000 ; 下位4bitは出現判定に使っているので上位4bitのbit3を見れば4回目になる
     bne sub_newEnemy_type2

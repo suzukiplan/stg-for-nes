@@ -191,6 +191,8 @@ clear_sprite_area:
     lda #$00
     sta v_gameOver
     sta v_gameOverD
+    sta v_level
+    sta v_level_cnt
     lda #$50
     sta v_playerX
     tax

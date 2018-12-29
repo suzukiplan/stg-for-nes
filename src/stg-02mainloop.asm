@@ -201,9 +201,25 @@ mainloop_moveEShot:
     ; check flag
     lda v_eshot0_f, x
     beq mainloop_moveEShot_next
+    ; 落下速度(i)が7未満の場合8フレームに1回の間隔で加速する
+    lda v_eshot0_i, x
+    cmp #$07
+    bcs mainloop_moveEShot_down ; もう最大速度
+    pha
+    lda v_counter
+    and #$07
+    beq mainloop_moveEShot_speedUp
+    pla
+    jmp mainloop_moveEShot_down
+mainloop_moveEShot_speedUp:
+    pla
+    clc
+    adc #$01
+    sta v_eshot0_i, x
+mainloop_moveEShot_down:
     lda v_eshot0_y, x
     clc
-    adc #$05
+    adc v_eshot0_i, x
     bcs mainloop_moveEShot_erase
     ; store Y
     sta v_eshot0_y, x
