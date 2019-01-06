@@ -408,4 +408,5 @@ Unityの場合、ゲームを作るために必要な機能をソフトウェア
 
 ## License
 
-[GPLv3](LICENSE.txt)
+- 一般向け: [GPLv3](LICENSE.txt)
+- カスタムライセンスを希望される場合emailにて個別にご連絡ください
