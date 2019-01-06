@@ -58,7 +58,7 @@ sub_moveEnemy_typeM_over16:
 sub_moveEnemy_typeM_hit:
     ; play SE (矩形波2を使う)
     ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
-    lda #%10010111
+    lda #%10011111
     sta $4004
     ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
     lda #%11111010

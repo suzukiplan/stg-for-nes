@@ -33,7 +33,7 @@ mainloop_gameOver:
 
     ; play SE1 (ノイズを使う)
     ;     --cevvvv (c=再生時間カウンタ, e=effect, v=volume)
-    lda #%00010100
+    lda #%00011111
     sta $400C
     ;     r---ssss (r=乱数種別, s=サンプリングレート)
     lda #%00001101
@@ -44,7 +44,7 @@ mainloop_gameOver:
 
     ; play SE2 (矩形波2を使う)
     ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
-    lda #%11110100
+    lda #%11111111
     sta $4004
     ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
     lda #%11110011

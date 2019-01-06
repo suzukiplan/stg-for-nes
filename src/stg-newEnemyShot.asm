@@ -53,7 +53,7 @@ sub_newEnemyShot:
 
     ; play SE2 (矩形波2を使う)
     ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
-    lda #%11110010
+    lda #%11111111
     sta $4004
     ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
     lda #%11010011
