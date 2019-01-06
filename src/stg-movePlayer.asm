@@ -19,7 +19,7 @@ sub_movePlayer_addNewShot:
 
     ; play SE (矩形波1を使う)
     ;     ddcevvvv (d=duty, c=再生時間カウンタ, e=effect, v=volume)
-    lda #%00110100
+    lda #%00111111
     sta $4000
     ;     csssmrrr (c=周波数変化, s=speed, m=method, r=range)
     lda #%11010010
