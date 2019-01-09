@@ -10,6 +10,7 @@ NESのプログラミングを勉強するためシンプルなSTGを作って�
 
 - [stg.nes](stg.nes)をダウンロードしてエミュレータでプレイしてください
 - Mapper0のカートリッジに焼けば恐らく実機でも動く筈です（未確認）
+- [RPGアツマール（ブラウザ）](https://game.nicovideo.jp/atsumaru/games/gm9628)でもプレイできます
 
 ### Story
 
