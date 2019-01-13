@@ -5,6 +5,13 @@
 ; * aレジスタ: 計算用のワーク
 ;----------------------------------------------------------
 sub_addScore10:
+    ; ゲームオーバー検出後はスコア加算しない
+    lda v_gameOver
+    beq sub_addScore10_notGameOver
+    lda #0
+    sta v_sc_plus
+    rts
+sub_addScore10_notGameOver:
     ; 現在のスコアの数値型を計算
     lda v_sc
     clc
